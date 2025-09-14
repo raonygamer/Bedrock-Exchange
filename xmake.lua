@@ -1,6 +1,7 @@
 -- Mod Options
-local mod_name = "Amethyst-Template" -- Replace with the name of your mod
+local mod_name = "Equivalent-Exchange" -- Replace with the name of your mod
 local targetMajor, targetMinor, targetPatch = 1, 21, 3 -- Replace with the target minecraft version
+local modVer = "1.0.0"
 
 option("automated_build")
     set_default(false)
@@ -35,7 +36,7 @@ else
     modFolder = path.join(
         amethystFolder,
         "mods",
-        string.format("%s@dev", mod_name)
+        string.format("%s@%s", mod_name, modVer)
     )
 end
 

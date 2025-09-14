@@ -1,0 +1,26 @@
+{
+    "resource_pack_name": "ee",
+    "texture_name": "atlas.items",
+    "texture_data": {
+        "equivalent_exchange:alchemy_bag": {
+            "textures": [
+                "textures/items/alchemy_bags/black",
+                "textures/items/alchemy_bags/blue",
+                "textures/items/alchemy_bags/brown",
+                "textures/items/alchemy_bags/cyan",
+                "textures/items/alchemy_bags/gray",
+                "textures/items/alchemy_bags/green",
+                "textures/items/alchemy_bags/light_blue",
+                "textures/items/alchemy_bags/light_gray",
+                "textures/items/alchemy_bags/lime",
+                "textures/items/alchemy_bags/magenta",
+                "textures/items/alchemy_bags/orange",
+                "textures/items/alchemy_bags/pink",
+                "textures/items/alchemy_bags/purple",
+                "textures/items/alchemy_bags/red",
+                "textures/items/alchemy_bags/white",
+                "textures/items/alchemy_bags/yellow"
+            ]
+        }
+    }
+}

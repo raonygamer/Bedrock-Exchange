@@ -7,5 +7,5 @@
 ModFunction void Initialize(AmethystContext& ctx) 
 {
     Amethyst::InitializeAmethystMod(ctx);
-    ctx.mEventBus->AddListener<RegisterItemsEvent>(&Items::RegisterAllItems);
+    ctx.mEventBus->AddListener<RegisterItemsEvent>([&](RegisterItemsEvent& event) { Items::RegisterAllItems(event, ctx); });
 }

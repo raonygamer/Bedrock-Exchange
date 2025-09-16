@@ -13,67 +13,6 @@
 #include "minecraft/src-client/common/client/gui/screens/models/ClientInstanceScreenModel.hpp"
 #include <string>
 
-class TestContainerScreenController :
-	public ContainerScreenController
-{
-public:
-	TestContainerScreenController(std::shared_ptr<ClientInstanceScreenModel> model, InteractionModel interaction) :
-		ContainerScreenController(model, interaction)
-	{
-		
-	}
-
-	virtual void addStaticScreenVars(Json::Value& value) override {
-		value["$container_title"] = std::string("Alchemic Bag");
-		ScreenController::addStaticScreenVars(value);
-	}
-
-	virtual void _registerCoalesceOrder() {
-
-	}
-
-	virtual void _registerAutoPlaceOrder() {
-
-	}
-
-	virtual ui::ViewRequest _onContainerSlotHovered(const std::string& collection, int index) override {
-		Log::Info("Hovered slot {} in collection {}", index, collection);
-		return ui::ViewRequest::ConsumeEvent;
-	}
-
-	virtual ui::ViewRequest _onContainerSlotUnhovered(const std::string& collection, int index) override {
-		Log::Info("Unhovered slot {} in collection {}", index, collection);
-		return ui::ViewRequest::ConsumeEvent;
-	}
-
-	virtual ui::ViewRequest _onContainerSlotSelected(const std::string& collection, int index) override {
-		Log::Info("Selected slot {} in collection {}", index, collection);
-		return ui::ViewRequest::ConsumeEvent;
-	}
-
-	virtual ui::ViewRequest _onContainerSlotPressed(const std::string& collection, int index) override {
-		Log::Info("Pressed slot {} in collection {}", index, collection);
-		return ui::ViewRequest::ConsumeEvent;
-	}
-
-	virtual std::string _getButtonADescription() override {
-		return "Test Button A";
-	}
-
-	virtual std::string _getButtonXDescription() override {
-		return "Test Button X";
-	}
-
-	virtual std::string _getButtonYDescription() override {
-		return "Test Button Y";
-	}
-
-	virtual bool _shouldSwap(const std::string& collectionLhs, int indexLhs, const std::string& collectionRhs, int indexRhs) override {
-		Log::Info("Should swap slot {} in collection {} with slot {} in collection {}", indexLhs, collectionLhs, indexRhs, collectionRhs);
-		return false;
-	}
-};
-
 std::vector<std::string> AlchemyBagItem::sAlchemyBagColors = {
 	"black",
 	"blue",

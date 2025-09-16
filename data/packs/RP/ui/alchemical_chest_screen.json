@@ -3,6 +3,16 @@
     "alchemical_grid_item@common.container_item": {
         "$item_collection_name": "container_items"
     },
+    "alchemical_chest_label": {
+        "type": "label",
+        "offset": [ 7, -1 ],
+        "anchor_from": "top_left",
+        "anchor_to": "top_left",
+        "text": "$container_title",
+        "size": [ "90%", "default" ],
+        "color": "$title_text_color",
+        "layer": 2
+    },
     "alchemical_chest_grid": {
         "type": "grid",
         "size": [ 234, 144 ],
@@ -19,7 +29,7 @@
         "anchor_to": "top_middle",
         "anchor_from": "top_middle",
         "controls": [
-            { "chest_label@chest.chest_label": {} },
+            { "alchemical_chest_label@alchemical_chest.alchemical_chest_label": {} },
             {
                 "alchemical_chest_grid@alchemical_chest.alchemical_chest_grid": {
                     "offset": [ 0, 10 ]

@@ -3,6 +3,7 @@
 #include "minecraft/src/common/world/item/registry/ItemRegistry.hpp"
 #include "minecraft/src/common/world/item/Item.hpp"
 #include "features/items/Items.hpp"
+#include "minecraft/src-client/common/client/gui/screens/controllers/MinecraftScreenController.hpp"
 
 ModFunction void Initialize(AmethystContext& ctx) 
 {

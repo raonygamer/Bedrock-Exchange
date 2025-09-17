@@ -5,13 +5,41 @@
 #include "minecraft/src-client/common/client/gui/screens/SceneCreationUtils.hpp"
 #include "minecraft/src-client/common/client/gui/screens/UIScene.hpp"
 #include "minecraft/src-client/common/client/gui/screens/ScreenController.hpp"
-#include "minecraft/src-client/common/client/gui/screens/controllers/MinecraftScreenController.hpp"
-#include "minecraft/src-client/common/client/gui/screens/controllers/ClientInstanceScreenController.hpp"
-#include "minecraft/src-client/common/client/gui/screens/controllers/ContainerScreenController.hpp"
-#include "minecraft/src-client/common/client/gui/screens/controllers/BlockContainerScreenController.hpp"
-#include "minecraft/src-client/common/client/gui/screens/controllers/ChestScreenController.hpp"
-#include "minecraft/src-client/common/client/gui/screens/models/ClientInstanceScreenModel.hpp"
+#include "minecraft/src/common/world/containers/ContainerFactory.hpp"
 #include <string>
+#include <cstdint>
+#include <cstdio>
+
+#include "features/screens/AlchemicalBagScreenController.hpp"
+#include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
+
+void compareVTables(void* obj, void* originalVTable, size_t count, uintptr_t baseAddr) {
+	auto vtable = *reinterpret_cast<void***>(obj);
+	auto orig = reinterpret_cast<uintptr_t*>(originalVTable);
+
+	auto resolveJmp = [](uintptr_t addr) -> uintptr_t {
+		unsigned char* bytes = reinterpret_cast<unsigned char*>(addr);
+		if (bytes[0] == 0xFF && bytes[1] == 0x25) {
+			int32_t ripOffset = *reinterpret_cast<int32_t*>(bytes + 2);
+			return *reinterpret_cast<uintptr_t*>(addr + 6 + ripOffset);
+		}
+		return addr;
+		};
+
+	for (size_t i = 0; i < count; ++i) {
+		uintptr_t funcAddr = reinterpret_cast<uintptr_t>(vtable[i]);
+		uintptr_t origAddr = orig[i];
+
+		uintptr_t finalFunc = resolveJmp(funcAddr) - baseAddr;
+		uintptr_t finalOrig = origAddr - baseAddr;
+
+		printf(
+			"vtable[%2zu]: 0x%p -> orig[%2zu]: 0x%p\n",
+			i, (void*)finalFunc,
+			i, (void*)finalOrig
+		);
+	}
+}
 
 std::vector<std::string> AlchemyBagItem::sAlchemyBagColors = {
 	"black",
@@ -62,10 +90,16 @@ ItemStack& AlchemyBagItem::use(ItemStack& stack, Player& player) const
 			factory.mAdvancedGraphicOptions
 		);
 		auto interactionModel = ContainerScreenController::interactionModelFromUIProfile(model->getUIProfile());
-		auto controller = std::make_shared<ChestScreenController>(model, player, BlockPos{0, 0, 0}, ActorUniqueID(), BlockActorType::Chest);
+		auto controller = std::make_shared<AlchemicalBagScreenController>(model, interactionModel);
 		auto scene = factory.createUIScene(game, clientInstance, "alchemical_chest.alchemical_chest_screen", controller);
 		auto screen = factory._createScreen(scene);
 		factory.getCurrentSceneStack()->pushScreen(screen, false);
+	}
+	else {
+		ServerPlayer& serverPlayer = static_cast<ServerPlayer&>(player);
+		auto containerManager = std::make_shared<AlchemicalBagManagerModel>(ContainerID::CONTAINER_ID_INVENTORY, player);
+		containerManager->postInit();
+		serverPlayer.setContainerManagerModel(containerManager);
 	}
 	return stack;
 }

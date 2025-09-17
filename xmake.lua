@@ -146,7 +146,8 @@ target(mod_name)
         string.format('MOD_TARGET_VERSION_MINOR=%d', targetMajor),
         string.format('MOD_TARGET_VERSION_PATCH=%d', targetMajor),
         'ENTT_PACKED_PAGE=128',
-        'AMETHYST_EXPORTS'
+        'AMETHYST_EXPORTS',
+        'JSONCPP_VALUE_USE_INTERNAL_MAP'
     )
 
     -- Deps

@@ -4,6 +4,8 @@
 #include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
 #include "minecraft/src/common/world/actor/player/Player.hpp"
 
+#include "Json.hpp"
+
 AlchemicalBagScreenController::AlchemicalBagScreenController(std::shared_ptr<ClientInstanceScreenModel> model, InteractionModel interaction) :
 	ContainerScreenController(model, interaction)
 {
@@ -12,7 +14,6 @@ AlchemicalBagScreenController::AlchemicalBagScreenController(std::shared_ptr<Cli
 	auto managerModel = ContainerFactory::clientCreateContainerManagerModel<AlchemicalBagManagerModel>(player, ContainerID::CONTAINER_ID_INVENTORY, player);
 	mContainerManagerController = std::make_shared<AlchemicalBagManagerController>(managerModel);
 	mContainerManagerController->postInit(mContainerManagerController);
-	CompareVirtualTables(ContainerScreenController::$vtable_for_this, this, 70);
 	_registerCoalesceOrder();
 }
 
@@ -46,3 +47,19 @@ void AlchemicalBagScreenController::_registerAutoPlaceOrder()
 {
 	Log::Info("AlchemicalBagScreenController::_registerAutoPlaceOrder called");
 }
+
+#pragma optimize("", off)
+void AlchemicalBagScreenController::addStaticScreenVars(Json::Value& root)
+{
+	ContainerScreenController::addStaticScreenVars(root);
+
+	//std::string titleStr = "Alchemical Bag";
+	//Json::Value containerTitle;
+	//containerTitle["__string"] = 1;
+	//containerTitle["__rawtext"] = 1;
+	//containerTitle["value"] = titleStr;
+	//root["$container_title"] = Json::nullValue;
+	auto& val = root["$container_title"];
+	Log::Info("Dump: {}", root.toStyledString());
+}
+#pragma optimize("", on)

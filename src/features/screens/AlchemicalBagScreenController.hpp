@@ -8,4 +8,5 @@ public:
 	AlchemicalBagScreenController(std::shared_ptr<ClientInstanceScreenModel> model, InteractionModel interaction);
 	virtual void _registerCoalesceOrder() override;
 	virtual void _registerAutoPlaceOrder() override;
+	virtual void addStaticScreenVars(Json::Value& root) override;
 };

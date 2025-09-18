@@ -1,5 +1,5 @@
 #pragma once
-#include "minecraft/src/common/world/containers/managers/models/ContainerManagerModel.hpp"
+#include "minecraft/src/common/world/containers/managers/models/LevelContainerManagerModel.hpp"
 
 class AlchemicalBagManagerModel :
 	public ContainerManagerModel
@@ -11,5 +11,6 @@ public:
     virtual const ItemStack& getSlot(int slot);
     virtual void setData(int, int);
     virtual void broadcastChanges();
+	virtual bool isValid();
     virtual ContainerScreenContext _postInit();
 };

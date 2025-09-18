@@ -97,7 +97,7 @@ ItemStack& AlchemyBagItem::use(ItemStack& stack, Player& player) const
 	}
 	else {
 		ServerPlayer& serverPlayer = static_cast<ServerPlayer&>(player);
-		auto containerManager = std::make_shared<AlchemicalBagManagerModel>(ContainerID::CONTAINER_ID_INVENTORY, player);
+		auto containerManager = std::make_shared<AlchemicalBagManagerModel>(ContainerID::CONTAINER_ID_PLAYER_ONLY_UI, player);
 		containerManager->postInit();
 		serverPlayer.setContainerManagerModel(containerManager);
 	}

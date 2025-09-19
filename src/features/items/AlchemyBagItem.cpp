@@ -6,12 +6,16 @@
 #include "minecraft/src-client/common/client/gui/screens/UIScene.hpp"
 #include "minecraft/src-client/common/client/gui/screens/ScreenController.hpp"
 #include "minecraft/src/common/world/containers/ContainerFactory.hpp"
+#include "minecraft/src/common/world/inventory/FillingContainer.hpp"
 #include <string>
 #include <cstdint>
 #include <cstdio>
 
 #include "features/screens/AlchemicalBagScreenController.hpp"
 #include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
+#include "features/components/AlchemicalBagContainerComponent.hpp"
+#include "minecraft/src/common/Minecraft.hpp"
+#include "minecraft/src/common/network/packet/ContainerOpenPacket.hpp"
 
 void compareVTables(void* obj, void* originalVTable, size_t count, uintptr_t baseAddr) {
 	auto vtable = *reinterpret_cast<void***>(obj);
@@ -78,11 +82,12 @@ AlchemyBagItem::AlchemyBagItem(const std::string& name, short id, const std::str
 ItemStack& AlchemyBagItem::use(ItemStack& stack, Player& player) const
 {
 	bool isClientSide = player.isClientSide();
+	auto& clientInstance = *Amethyst::GetContext().mClientInstance;
+	auto& game = *clientInstance.mMinecraftGame;
+	auto& minecraft = *Amethyst::GetMinecraft();
 	Log::Info("AlchemyBagItem::use called client {}", isClientSide);
 	if (isClientSide) {
-		auto& clientInstance = *Amethyst::GetContext().mClientInstance;
 		auto& factory = *clientInstance.mSceneFactory;
-		auto& game = *clientInstance.mMinecraftGame;
 		auto model = SceneCreationUtils::_createModel<ClientInstanceScreenModel>(
 			factory,
 			game,
@@ -97,9 +102,17 @@ ItemStack& AlchemyBagItem::use(ItemStack& stack, Player& player) const
 	}
 	else {
 		ServerPlayer& serverPlayer = static_cast<ServerPlayer&>(player);
-		auto containerManager = std::make_shared<AlchemicalBagManagerModel>(ContainerID::CONTAINER_ID_PLAYER_ONLY_UI, player);
+		auto nextContainerId = serverPlayer.mContainerCounter + 1;
+		if (nextContainerId >= (char)ContainerID::CONTAINER_ID_LAST)
+			nextContainerId = (char)ContainerID::CONTAINER_ID_FIRST;
+		serverPlayer.mContainerCounter = nextContainerId;
+		auto id = ContainerID(nextContainerId);
+		auto containerManager = std::make_shared<AlchemicalBagManagerModel>(id, player);
 		containerManager->postInit();
 		serverPlayer.setContainerManagerModel(containerManager);
+		auto packet = ContainerOpenPacket(id, ContainerType::CONTAINER, BlockPos(0, 0, 0), player.getUniqueID());
+		serverPlayer.sendNetworkPacket(packet);
 	}
+	
 	return stack;
 }

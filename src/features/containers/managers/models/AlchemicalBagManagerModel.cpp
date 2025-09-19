@@ -5,42 +5,16 @@
 #include "minecraft/src/common/world/containers/models/InventoryContainerModel.hpp"
 #include "minecraft/src/common/world/containers/models/PlayerUIContainerModel.hpp"
 #include "minecraft/src/common/world/inventory/network/ContainerScreenContext.hpp"
+#include "features/containers/models/AlchemicalBagContainerModel.hpp"
+#include "features/components/AlchemicalBagContainerComponent.hpp"
 
 AlchemicalBagManagerModel::AlchemicalBagManagerModel(ContainerID id, Player& player) :
-	ContainerManagerModel(id, player)
+	LevelContainerManagerModel(id, player, player.getUniqueID())
 {
 	mScreenContext.mPlayer = &player;
-	mScreenContext.mScreenContainerType = ContainerType::CONTAINER;
 	mScreenContext.mOwner = player.getUniqueID();
+	mScreenContext.mScreenContainerType = ContainerType::CONTAINER;
 	setContainerType(ContainerType::CONTAINER);
-}
-
-std::vector<ItemStack> AlchemicalBagManagerModel::getItemCopies()
-{
-	
-	return {};
-}
-
-void AlchemicalBagManagerModel::setSlot(int slot, const ItemStack& stack, bool flag)
-{
-	Log::Info("AlchemicalBagManagerModel::setSlot called for slot {}", slot);
-	
-}
-
-const ItemStack& AlchemicalBagManagerModel::getSlot(int slot)
-{
-	Log::Info("AlchemicalBagManagerModel::getSlot called for slot {}", slot);
-	return ItemStack::EMPTY_ITEM;
-}
-
-void AlchemicalBagManagerModel::setData(int, int)
-{
-	Log::Info("AlchemicalBagManagerModel::setData called");
-}
-
-void AlchemicalBagManagerModel::broadcastChanges()
-{
-	
 }
 
 bool AlchemicalBagManagerModel::isValid() {
@@ -52,6 +26,7 @@ ContainerScreenContext AlchemicalBagManagerModel::_postInit()
 	auto& supplies = mPlayer.getSupplies();
 	auto hotbarSize = 9;
 	auto containerSize = supplies.mInventory->getContainerSize();
+	_addContainer(std::make_shared<AlchemicalBagContainerModel>(ContainerEnumName::LevelEntityContainer, 104, mPlayer));
 	_addContainer(std::make_shared<PlayerUIContainerModel>(ContainerEnumName::CursorContainer, mPlayer));
 	_addContainer(std::make_shared<InventoryContainerModel>(ContainerEnumName::HotbarContainer, hotbarSize, mPlayer));
 	_addContainer(std::make_shared<InventoryContainerModel>(ContainerEnumName::InventoryContainer, containerSize - hotbarSize, mPlayer));

@@ -8,10 +8,17 @@
         "offset": [ 7, -1 ],
         "anchor_from": "top_left",
         "anchor_to": "top_left",
-        "text": "$container_title",
+        "text": "#text",
         "size": [ "90%", "default" ],
         "color": "$title_text_color",
-        "layer": 2
+        "layer": 2,
+        "bindings": [
+            {
+                "binding_name": "#container_name",
+                "binding_name_override": "#text",
+                "binding_condition": "always_when_visible"
+            }
+        ]
     },
     "alchemical_chest_grid": {
         "type": "grid",

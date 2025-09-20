@@ -1,13 +1,17 @@
+#include "features/items/AlchemicalBagItem.hpp"
 #include "features/screens/AlchemicalBagScreenController.hpp"
-#include "minecraft/src/common/world/containers/ContainerFactory.hpp"
-#include "features/containers/managers/controllers/AlchemicalBagManagerController.hpp"
 #include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
+#include "features/containers/managers/controllers/AlchemicalBagManagerController.hpp"
+
+#include "minecraft/src/common/world/containers/ContainerFactory.hpp"
 #include "minecraft/src/common/world/actor/player/Player.hpp"
+#include "minecraft/src/common/locale/I18n.hpp"
 
 #include "Json.hpp"
 
-AlchemicalBagScreenController::AlchemicalBagScreenController(std::shared_ptr<ClientInstanceScreenModel> model, InteractionModel interaction) :
-	ContainerScreenController(model, interaction)
+AlchemicalBagScreenController::AlchemicalBagScreenController(std::shared_ptr<ClientInstanceScreenModel> model, InteractionModel interaction, const AlchemicalBagItem* item) :
+	ContainerScreenController(model, interaction),
+	mItem(item)
 {
 	auto& player = *model->getPlayer();
 	setAssociatedEntityUniqueID(player.getUniqueID());
@@ -15,52 +19,49 @@ AlchemicalBagScreenController::AlchemicalBagScreenController(std::shared_ptr<Cli
 	mContainerManagerController = std::make_shared<AlchemicalBagManagerController>(managerModel);
 	mContainerManagerController->registerContainerCallbacks();
 	mContainerManagerController->postInit(mContainerManagerController);
+	_registerBindings();
 	_registerCoalesceOrder();
+	_registerAutoPlaceOrder();
 }
 
 void AlchemicalBagScreenController::_registerCoalesceOrder() 
 {
-	auto vec = std::vector<std::string>{};
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]);
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]);
-	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]] = vec;
+	std::vector<std::string> coalesceOrder;
+	coalesceOrder.reserve(3);
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]);
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]);
+	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]] = coalesceOrder;
 
-	vec = std::vector<std::string>{};
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]);
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]);
-	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]] = vec;
+	coalesceOrder.clear();
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]);
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]);
+	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]] = coalesceOrder;
 
-	vec = std::vector<std::string>{};
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::CombinedHotbarAndInventoryContainer]);
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
-	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::CombinedHotbarAndInventoryContainer]] = vec;
+	coalesceOrder.clear();
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::CombinedHotbarAndInventoryContainer]);
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
+	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::CombinedHotbarAndInventoryContainer]] = coalesceOrder;
 
-	vec = std::vector<std::string>{};
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]);
-	vec.push_back(ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]);
-	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]] = vec;
+	coalesceOrder.clear();
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]);
+	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]);
+	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]] = coalesceOrder;
 }
 
 void AlchemicalBagScreenController::_registerAutoPlaceOrder() 
 {
-	Log::Info("AlchemicalBagScreenController::_registerAutoPlaceOrder called");
+	
 }
 
-#pragma optimize("", off)
-void AlchemicalBagScreenController::addStaticScreenVars(Json::Value& root)
+void AlchemicalBagScreenController::_registerBindings()
 {
-	ContainerScreenController::addStaticScreenVars(root);
+	std::string itemName = std::format("item.{}.name", mItem->mFullName.getString());
+	itemName = getI18n().get(itemName, nullptr);
 
-	//std::string titleStr = "Alchemical Bag";
-	//Json::Value containerTitle;
-	//containerTitle["__string"] = 1;
-	//containerTitle["__rawtext"] = 1;
-	//containerTitle["value"] = titleStr;
-	//root["$container_title"] = Json::nullValue;
-	//auto& val = root["$container_title"];
-	//Log::Info("Dump: {}", root.toStyledString());
+	bindString({ StringToNameId("#container_name") }, [itemName]() {
+		return itemName;
+	}, []() { return true; });
 }
-#pragma optimize("", on)

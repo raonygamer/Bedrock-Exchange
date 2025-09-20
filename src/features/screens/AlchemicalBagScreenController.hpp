@@ -5,8 +5,10 @@ class AlchemicalBagScreenController :
 	public ContainerScreenController 
 {
 public:
-	AlchemicalBagScreenController(std::shared_ptr<ClientInstanceScreenModel> model, InteractionModel interaction);
+	const AlchemicalBagItem* mItem;
+
+	AlchemicalBagScreenController(std::shared_ptr<ClientInstanceScreenModel> model, InteractionModel interaction, const AlchemicalBagItem* item);
 	virtual void _registerCoalesceOrder() override;
 	virtual void _registerAutoPlaceOrder() override;
-	virtual void addStaticScreenVars(Json::Value& root) override;
+	void _registerBindings();
 };

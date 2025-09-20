@@ -2,24 +2,24 @@
     "resource_pack_name": "ee",
     "texture_name": "atlas.items",
     "texture_data": {
-        "equivalent_exchange:alchemy_bag": {
+        "ee2:alchemical_bag": {
             "textures": [
-                "textures/items/alchemy_bags/black",
-                "textures/items/alchemy_bags/blue",
-                "textures/items/alchemy_bags/brown",
-                "textures/items/alchemy_bags/cyan",
-                "textures/items/alchemy_bags/gray",
-                "textures/items/alchemy_bags/green",
-                "textures/items/alchemy_bags/light_blue",
-                "textures/items/alchemy_bags/light_gray",
-                "textures/items/alchemy_bags/lime",
-                "textures/items/alchemy_bags/magenta",
-                "textures/items/alchemy_bags/orange",
-                "textures/items/alchemy_bags/pink",
-                "textures/items/alchemy_bags/purple",
-                "textures/items/alchemy_bags/red",
-                "textures/items/alchemy_bags/white",
-                "textures/items/alchemy_bags/yellow"
+                "textures/items/alchemical_bags/black",
+                "textures/items/alchemical_bags/blue",
+                "textures/items/alchemical_bags/brown",
+                "textures/items/alchemical_bags/cyan",
+                "textures/items/alchemical_bags/gray",
+                "textures/items/alchemical_bags/green",
+                "textures/items/alchemical_bags/light_blue",
+                "textures/items/alchemical_bags/light_gray",
+                "textures/items/alchemical_bags/lime",
+                "textures/items/alchemical_bags/magenta",
+                "textures/items/alchemical_bags/orange",
+                "textures/items/alchemical_bags/pink",
+                "textures/items/alchemical_bags/purple",
+                "textures/items/alchemical_bags/red",
+                "textures/items/alchemical_bags/white",
+                "textures/items/alchemical_bags/yellow"
             ]
         }
     }

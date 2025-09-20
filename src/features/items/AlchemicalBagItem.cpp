@@ -1,4 +1,4 @@
-#include "AlchemyBagItem.hpp"
+#include "AlchemicalBagItem.hpp"
 #include "amethyst/runtime/ModContext.hpp"
 #include "minecraft/src/common/world/actor/player/Player.hpp"
 #include "minecraft/src/common/server/ServerPlayer.hpp"
@@ -17,35 +17,7 @@
 #include "minecraft/src/common/Minecraft.hpp"
 #include "minecraft/src/common/network/packet/ContainerOpenPacket.hpp"
 
-void compareVTables(void* obj, void* originalVTable, size_t count, uintptr_t baseAddr) {
-	auto vtable = *reinterpret_cast<void***>(obj);
-	auto orig = reinterpret_cast<uintptr_t*>(originalVTable);
-
-	auto resolveJmp = [](uintptr_t addr) -> uintptr_t {
-		unsigned char* bytes = reinterpret_cast<unsigned char*>(addr);
-		if (bytes[0] == 0xFF && bytes[1] == 0x25) {
-			int32_t ripOffset = *reinterpret_cast<int32_t*>(bytes + 2);
-			return *reinterpret_cast<uintptr_t*>(addr + 6 + ripOffset);
-		}
-		return addr;
-		};
-
-	for (size_t i = 0; i < count; ++i) {
-		uintptr_t funcAddr = reinterpret_cast<uintptr_t>(vtable[i]);
-		uintptr_t origAddr = orig[i];
-
-		uintptr_t finalFunc = resolveJmp(funcAddr) - baseAddr;
-		uintptr_t finalOrig = origAddr - baseAddr;
-
-		printf(
-			"vtable[%2zu]: 0x%p -> orig[%2zu]: 0x%p\n",
-			i, (void*)finalFunc,
-			i, (void*)finalOrig
-		);
-	}
-}
-
-std::vector<std::string> AlchemyBagItem::sAlchemyBagColors = {
+std::vector<std::string> AlchemicalBagItem::sAlchemicalBagColors = {
 	"black",
 	"blue",
 	"brown",
@@ -64,28 +36,31 @@ std::vector<std::string> AlchemyBagItem::sAlchemyBagColors = {
 	"yellow"
 };
 
-AlchemyBagItem::AlchemyBagItem(const std::string& name, short id, const std::string& color) :
-	Item(name, id)
+AlchemicalBagItem::AlchemicalBagItem(const std::string& name, short id, const std::string& color) :
+	Item(name, id),
+	mBagColor(color)
 {
 	int32_t index = -1;
-	auto it = std::find(sAlchemyBagColors.begin(), sAlchemyBagColors.end(), color);
-	if (it != sAlchemyBagColors.end()) {
-		index = static_cast<int32_t>(std::distance(sAlchemyBagColors.begin(), it));
+	auto it = std::find(sAlchemicalBagColors.begin(), sAlchemicalBagColors.end(), color);
+	if (it != sAlchemicalBagColors.end()) {
+		index = static_cast<int32_t>(std::distance(sAlchemicalBagColors.begin(), it));
 	}
 	if (index != -1)
-		setIconInfo("equivalent_exchange:alchemy_bag", index);
+		setIconInfo("ee2:alchemical_bag", index);
 	mMaxStackSize = 1;
 	mCreativeCategory = CreativeItemCategory::Items;
-	mCreativeGroup = "equivalent_exchange.alchemy_bags";
+	mCreativeGroup = "ee2:itemGroup.name.alchemical_bags";
+	AmethystContext& ctx = Amethyst::GetContext();
+	ctx.mItemOwnerNameRegistry->RegisterItemOwnerName(mFullName.getString(), "Equivalent Exchange 2");
 }
 
-ItemStack& AlchemyBagItem::use(ItemStack& stack, Player& player) const
+ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const
 {
 	bool isClientSide = player.isClientSide();
 	auto& clientInstance = *Amethyst::GetContext().mClientInstance;
 	auto& game = *clientInstance.mMinecraftGame;
 	auto& minecraft = *Amethyst::GetMinecraft();
-	Log::Info("AlchemyBagItem::use called client {}", isClientSide);
+	Log::Info("AlchemicalBagItem::use called client {}", isClientSide);
 	if (isClientSide) {
 		auto& factory = *clientInstance.mSceneFactory;
 		auto model = SceneCreationUtils::_createModel<ClientInstanceScreenModel>(
@@ -95,7 +70,7 @@ ItemStack& AlchemyBagItem::use(ItemStack& stack, Player& player) const
 			factory.mAdvancedGraphicOptions
 		);
 		auto interactionModel = ContainerScreenController::interactionModelFromUIProfile(model->getUIProfile());
-		auto controller = std::make_shared<AlchemicalBagScreenController>(model, interactionModel);
+		auto controller = std::make_shared<AlchemicalBagScreenController>(model, interactionModel, this);
 		auto scene = factory.createUIScene(game, clientInstance, "alchemical_chest.alchemical_chest_screen", controller);
 		auto screen = factory._createScreen(scene);
 		factory.getCurrentSceneStack()->pushScreen(screen, false);

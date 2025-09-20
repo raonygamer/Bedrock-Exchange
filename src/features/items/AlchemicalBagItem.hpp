@@ -1,0 +1,11 @@
+#pragma once
+#include "minecraft/src/common/world/item/Item.hpp"
+
+class AlchemicalBagItem : public Item {
+public:
+	static std::vector<std::string> sAlchemicalBagColors;
+	std::string mBagColor;
+
+	AlchemicalBagItem(const std::string& name, short id, const std::string& color);
+	ItemStack& use(ItemStack& stack, Player& player) const override;
+};

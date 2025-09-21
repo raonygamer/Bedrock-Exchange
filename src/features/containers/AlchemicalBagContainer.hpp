@@ -3,27 +3,30 @@
 #include "minecraft/src/common/world/actor/player/Player.hpp"
 #include "minecraft/src/common/world/actor/player/Inventory.hpp"
 
-class AlchemicalBagContainer : 
-	public FillingContainer 
+class AlchemicalBagContainer :
+	public FillingContainer
 {
 public:
-	AlchemicalBagContainer(Player* player) :
-		FillingContainer(player, 104, ContainerType::CONTAINER) 
+	std::string mColor;
+	int mColorIndex;
+
+	AlchemicalBagContainer(Player* player, const std::string& color, int colorIndex) :
+		FillingContainer(player, 104, ContainerType::CONTAINER),
+		mColor(color),
+		mColorIndex(colorIndex)
 	{
 	}
 
-	virtual void setItem(int slot, const ItemStack& item) override 
-	{
-		if (mPlayer->isClientSide()) {
-			Log::Info("Tried to set item on alchemical bag container on client side");
-		}
-		else {
-			Log::Info("Setting item on alchemical bag container on server side");
-		}
+	virtual void readAdditionalSaveData(const CompoundTag& tag) {
+		
+	}
+
+	virtual void addAdditionalSaveData(CompoundTag& tag) {
+		
+	}
+
+	virtual void setItem(int slot, const ItemStack& item) override {
+		Log::Info("Setting item in alchemical bag slot {}: {}, client: {}", slot, item.toString(), mPlayer->isClientSide());
 		FillingContainer::setItem(slot, item);
-	}
-
-	virtual void load(const ListTag& tag, const SemVersion& version, Level&) {
-
 	}
 };

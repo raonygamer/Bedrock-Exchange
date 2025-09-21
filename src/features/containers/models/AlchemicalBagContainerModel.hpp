@@ -16,32 +16,8 @@ class AlchemicalBagContainerModel :
 	public LevelContainerModel
 {
 public:
-	AlchemicalBagContainerModel(ContainerEnumName name, int size, Player& player) :
-		LevelContainerModel(name, size, player, BlockActorType::Undefined, { 0, 0, 0 }, ContainerCategory::Default)
-	{
-
-	}
-
-	virtual Container* _getContainer() override
-	{
-		auto* component = mPlayer.tryGetComponent<AlchemicalBagContainerComponent>();
-		Assert(component, "AlchemicalBagContainerComponent not found on player");
-		return component->mContainer.get();
-	}
-
-	virtual int _getContainerOffset() override
-	{
-		return 0;
-	}
-
-	virtual ContainerWeakRef getContainerWeakRef() override
-	{
-		auto* container = _getContainer();
-		return ContainerWeakRef{
-			mPlayer.getUniqueID(),
-			AlchemicalBagContainerType,
-			BlockPos{ 0, 0, 0 },
-			container->mContainerRuntimeId
-		};
-	}
+	AlchemicalBagContainerModel(ContainerEnumName name, int size, Player& player);
+	virtual Container* _getContainer() override;
+	virtual int _getContainerOffset() override;
+	virtual ContainerWeakRef getContainerWeakRef() override;
 };

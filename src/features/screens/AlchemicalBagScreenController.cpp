@@ -26,34 +26,60 @@ AlchemicalBagScreenController::AlchemicalBagScreenController(std::shared_ptr<Cli
 
 void AlchemicalBagScreenController::_registerCoalesceOrder() 
 {
-	std::vector<std::string> coalesceOrder;
-	coalesceOrder.reserve(3);
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]);
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]);
-	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]] = coalesceOrder;
+	std::vector<std::string> order = {};
+	order.reserve(3);
 
-	coalesceOrder.clear();
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]);
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]);
-	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]] = coalesceOrder;
+	order.clear();
+	order.push_back("hotbar_items");
+	order.push_back("container_items");
+	order.push_back("inventory_items");
+	mCoalesceOrderMap["hotbar_items"] = order;
 
-	coalesceOrder.clear();
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::CombinedHotbarAndInventoryContainer]);
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
-	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::CombinedHotbarAndInventoryContainer]] = coalesceOrder;
+	order.clear();
+	order.push_back("inventory_items");
+	order.push_back("container_items");
+	order.push_back("hotbar_items");
+	mCoalesceOrderMap["inventory_items"] = order;
 
-	coalesceOrder.clear();
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]);
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::InventoryContainer]);
-	coalesceOrder.push_back(ContainerCollectionNameMap[ContainerEnumName::HotbarContainer]);
-	mCoalesceOrderMap[ContainerCollectionNameMap[ContainerEnumName::LevelEntityContainer]] = coalesceOrder;
+	order.clear();
+	order.push_back("combined_hotbar_and_inventory_items");
+	order.push_back("container_items");
+	mCoalesceOrderMap["combined_hotbar_and_inventory_items"] = order;
+
+	order.clear();
+	order.push_back("container_items");
+	order.push_back("inventory_items");
+	order.push_back("hotbar_items");
+	mCoalesceOrderMap["container_items"] = order;
 }
 
 void AlchemicalBagScreenController::_registerAutoPlaceOrder() 
 {
-	
+	std::vector<AutoPlaceItem> order = {};
+	order.reserve(3);
+
+	order.clear();
+	order.emplace_back("hotbar_items", false);
+	order.emplace_back("container_items", false);
+	order.emplace_back("inventory_items", false);
+	mAutoPlaceOrderMap["hotbar_items"] = order;
+
+	order.clear();
+	order.emplace_back("inventory_items", false);
+	order.emplace_back("container_items", false);
+	order.emplace_back("hotbar_items", false);
+	mAutoPlaceOrderMap["inventory_items"] = order;
+
+	order.clear();
+	order.emplace_back("combined_hotbar_and_inventory_items", false);
+	order.emplace_back("container_items", false);
+	mAutoPlaceOrderMap["combined_hotbar_and_inventory_items"] = order;
+
+	order.clear();
+	order.emplace_back("container_items", false);
+	order.emplace_back("inventory_items", false);
+	order.emplace_back("hotbar_items", false);
+	mAutoPlaceOrderMap["container_items"] = order;
 }
 
 void AlchemicalBagScreenController::_registerBindings()

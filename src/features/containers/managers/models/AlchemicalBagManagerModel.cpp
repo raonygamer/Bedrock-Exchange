@@ -23,11 +23,11 @@ ContainerScreenContext AlchemicalBagManagerModel::_postInit()
 	auto& supplies = mPlayer.getSupplies();
 	auto hotbarSize = 9;
 	auto containerSize = supplies.mInventory->getContainerSize();
+	_addContainer(std::make_shared<AlchemicalBagContainerModel>(ContainerEnumName::LevelEntityContainer, 104, mPlayer));
 	_addContainer(std::make_shared<PlayerUIContainerModel>(ContainerEnumName::CursorContainer, mPlayer));
 	_addContainer(std::make_shared<InventoryContainerModel>(ContainerEnumName::HotbarContainer, hotbarSize, mPlayer));
 	_addContainer(std::make_shared<InventoryContainerModel>(ContainerEnumName::InventoryContainer, containerSize - hotbarSize, mPlayer));
 	_addContainer(std::make_shared<InventoryContainerModel>(ContainerEnumName::CombinedHotbarAndInventoryContainer, containerSize, mPlayer));
-	_addContainer(std::make_shared<AlchemicalBagContainerModel>(ContainerEnumName::LevelEntityContainer, 104, mPlayer));
 	for (auto& [name, container] : mContainers) {
 		container->postInit();
 	}

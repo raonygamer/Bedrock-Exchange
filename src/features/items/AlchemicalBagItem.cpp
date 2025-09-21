@@ -1,5 +1,18 @@
-#include "AlchemicalBagItem.hpp"
+#include "features/items/AlchemicalBagItem.hpp"
+#include "features/screens/AlchemicalBagScreenController.hpp"
+#include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
+#include "features/components/AlchemicalBagContainerComponent.hpp"
+#include "features/ModGlobals.hpp"
+
 #include "amethyst/runtime/ModContext.hpp"
+
+#include <string>
+#include <cstdint>
+#include <cstdio>
+
+#include "minecraft/src/common/Minecraft.hpp"
+#include "minecraft/src/common/network/packet/ContainerOpenPacket.hpp"
+#include "minecraft/src/common/network/packet/InventoryContentPacket.hpp"
 #include "minecraft/src/common/world/actor/player/Player.hpp"
 #include "minecraft/src/common/server/ServerPlayer.hpp"
 #include "minecraft/src-client/common/client/gui/screens/SceneCreationUtils.hpp"
@@ -7,51 +20,22 @@
 #include "minecraft/src-client/common/client/gui/screens/ScreenController.hpp"
 #include "minecraft/src/common/world/containers/ContainerFactory.hpp"
 #include "minecraft/src/common/world/inventory/FillingContainer.hpp"
-#include <string>
-#include <cstdint>
-#include <cstdio>
-
-#include "features/screens/AlchemicalBagScreenController.hpp"
-#include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
-#include "features/components/AlchemicalBagContainerComponent.hpp"
-#include "minecraft/src/common/Minecraft.hpp"
-#include "minecraft/src/common/network/packet/ContainerOpenPacket.hpp"
-
-std::vector<std::string> AlchemicalBagItem::sAlchemicalBagColors = {
-	"black",
-	"blue",
-	"brown",
-	"cyan",
-	"gray",
-	"green",
-	"light_blue",
-	"light_gray",
-	"lime",
-	"magenta",
-	"orange",
-	"pink",
-	"purple",
-	"red",
-	"white",
-	"yellow"
-};
 
 AlchemicalBagItem::AlchemicalBagItem(const std::string& name, short id, const std::string& color) :
 	Item(name, id),
 	mBagColor(color)
 {
+	auto& colors = ModGlobals::AlchemicalBagColors;
 	int32_t index = -1;
-	auto it = std::find(sAlchemicalBagColors.begin(), sAlchemicalBagColors.end(), color);
-	if (it != sAlchemicalBagColors.end()) {
-		index = static_cast<int32_t>(std::distance(sAlchemicalBagColors.begin(), it));
+	auto it = std::find(colors.begin(), colors.end(), color);
+	if (it != colors.end()) {
+		index = static_cast<int32_t>(std::distance(colors.begin(), it));
 	}
 	if (index != -1)
 		setIconInfo("ee2:alchemical_bag", index);
 	mMaxStackSize = 1;
 	mCreativeCategory = CreativeItemCategory::Items;
 	mCreativeGroup = "ee2:itemGroup.name.alchemical_bags";
-	AmethystContext& ctx = Amethyst::GetContext();
-	ctx.mItemOwnerNameRegistry->RegisterItemOwnerName(mFullName.getString(), "Equivalent Exchange 2");
 }
 
 ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const
@@ -60,7 +44,6 @@ ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const
 	auto& clientInstance = *Amethyst::GetContext().mClientInstance;
 	auto& game = *clientInstance.mMinecraftGame;
 	auto& minecraft = *Amethyst::GetMinecraft();
-	Log::Info("AlchemicalBagItem::use called client {}", isClientSide);
 	if (isClientSide) {
 		auto& factory = *clientInstance.mSceneFactory;
 		auto model = SceneCreationUtils::_createModel<ClientInstanceScreenModel>(
@@ -85,8 +68,10 @@ ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const
 		auto containerManager = std::make_shared<AlchemicalBagManagerModel>(id, player);
 		containerManager->postInit();
 		serverPlayer.setContainerManagerModel(containerManager);
-		auto packet = ContainerOpenPacket(id, ContainerType::CONTAINER, BlockPos(0, 0, 0), player.getUniqueID());
+		ContainerOpenPacket packet(id, ContainerType::CONTAINER, BlockPos(0, 0, 0), player.getUniqueID());
+		InventoryContentPacket invPacket = InventoryContentPacket::fromPlayerInventoryId(id, player);
 		serverPlayer.sendNetworkPacket(packet);
+		serverPlayer.sendNetworkPacket(invPacket);
 	}
 	
 	return stack;

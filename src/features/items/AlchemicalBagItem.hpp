@@ -3,7 +3,7 @@
 
 class AlchemicalBagItem : public Item {
 public:
-	static std::vector<std::string> sAlchemicalBagColors;
+	
 	std::string mBagColor;
 
 	AlchemicalBagItem(const std::string& name, short id, const std::string& color);

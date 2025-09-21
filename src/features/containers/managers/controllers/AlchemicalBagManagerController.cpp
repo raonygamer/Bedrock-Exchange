@@ -70,5 +70,5 @@ bool AlchemicalBagManagerController::isAlchemicalBagItem(const SlotData& slotDat
 	auto* fromItem = containerModel->getItemStack(slotData.mCollectionIndex).getItem();
 	if (!fromItem)
 		return false;
-	return fromItem->mFullName.getString().starts_with("equivalent_exchange:") && fromItem->mFullName.getString().ends_with("_alchemy_bag");
+	return fromItem->mFullName.getString().starts_with("ee2:") && fromItem->mFullName.getString().ends_with("_alchemical_bag");
 }

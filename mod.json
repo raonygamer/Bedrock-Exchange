@@ -1,6 +1,9 @@
 {
     "meta": {
+        "namespace": "ee2",
         "name": "Equivalent-Exchange",
+        "friendlyname": "Equivalent Exchange 2",
+        "logname": "EE2",
         "version": "1.0.0",
         "author": "ryd3v"
     }

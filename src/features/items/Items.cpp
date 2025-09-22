@@ -17,7 +17,6 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 		std::string fullName = std::format("ee2:{}_alchemical_bag", color);
 		auto item = event.itemRegistry.registerItemShared<AlchemicalBagItem>(fullName, ++event.itemRegistry.mMaxItemID, color);
 		sAlchemicalBags[color] = item;
-		item->mTags.push_back(ItemTag("mod_item_owner:Equivalent Exchange 2"));
 	}
 
 	for (const auto& [name, block] : Blocks::sBlocks) {
@@ -25,6 +24,5 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			continue;
 		Log::Info("Registering block item '{}'", name);
 		auto item = event.itemRegistry.registerItemShared<BlockItem>(name, block->getBlockItemId(), HashedString(name));
-		item->mTags.push_back(ItemTag("mod_item_owner:Equivalent Exchange 2"));
 	}
 }

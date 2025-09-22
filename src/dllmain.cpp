@@ -17,9 +17,9 @@
 
 ActorContainerType AlchemicalBagContainerType;
 
-ModFunction void Initialize(AmethystContext& ctx) 
+ModFunction void Initialize(AmethystContext& ctx, const Mod& mod) 
 {
-    Amethyst::InitializeAmethystMod(ctx, std::make_unique<Amethyst::ModInfo>("EE2"));
+    Amethyst::InitializeAmethystMod(ctx, mod);
 
 	// Listen to RegisterItemsEvent to add new items
     ctx.mEventBus->AddListener<RegisterItemsEvent>([&](RegisterItemsEvent& event) {

@@ -13,17 +13,18 @@ std::unordered_map<std::string, WeakPtr<AlchemicalBagItem>> sAlchemicalBags;
 
 void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 {
-	ctx.mItemOwnerNameRegistry->RegisterItemOwnerNameForNamespace("ee2", "Equivalent Exchange 2");
 	for (const std::string& color : ModGlobals::AlchemicalBagColors) {
 		std::string fullName = std::format("ee2:{}_alchemical_bag", color);
-		auto ptr = event.itemRegistry.registerItemShared<AlchemicalBagItem>(fullName, ++event.itemRegistry.mMaxItemID, color);
-		sAlchemicalBags[color] = ptr;
+		auto item = event.itemRegistry.registerItemShared<AlchemicalBagItem>(fullName, ++event.itemRegistry.mMaxItemID, color);
+		sAlchemicalBags[color] = item;
+		item->mTags.push_back(ItemTag("mod_item_owner:Equivalent Exchange 2"));
 	}
 
 	for (const auto& [name, block] : Blocks::sBlocks) {
 		if (block.isNull()) 
 			continue;
 		Log::Info("Registering block item '{}'", name);
-		event.itemRegistry.registerItemShared<BlockItem>(name, block->getBlockItemId(), HashedString(name));
+		auto item = event.itemRegistry.registerItemShared<BlockItem>(name, block->getBlockItemId(), HashedString(name));
+		item->mTags.push_back(ItemTag("mod_item_owner:Equivalent Exchange 2"));
 	}
 }

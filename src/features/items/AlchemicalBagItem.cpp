@@ -68,8 +68,8 @@ ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const
 		auto containerManager = std::make_shared<AlchemicalBagManagerModel>(id, player);
 		containerManager->postInit();
 		serverPlayer.setContainerManagerModel(containerManager);
-		ContainerOpenPacket packet(id, ContainerType::CONTAINER, BlockPos(0, 0, 0), player.getUniqueID());
-		InventoryContentPacket invPacket = InventoryContentPacket::fromPlayerInventoryId(id, player);
+		ContainerOpenPacket packet(containerManager->getContainerId(), containerManager->getContainerType(), BlockPos(0, 0, 0), player.getUniqueID());
+		InventoryContentPacket invPacket = InventoryContentPacket::fromPlayerInventoryId(containerManager->getContainerId(), player);
 		serverPlayer.sendNetworkPacket(packet);
 		serverPlayer.sendNetworkPacket(invPacket);
 	}

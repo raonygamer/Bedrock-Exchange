@@ -10,16 +10,16 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "minecraft/src/common/Minecraft.hpp"
-#include "minecraft/src/common/network/packet/ContainerOpenPacket.hpp"
-#include "minecraft/src/common/network/packet/InventoryContentPacket.hpp"
-#include "minecraft/src/common/world/actor/player/Player.hpp"
-#include "minecraft/src/common/server/ServerPlayer.hpp"
-#include "minecraft/src-client/common/client/gui/screens/SceneCreationUtils.hpp"
-#include "minecraft/src-client/common/client/gui/screens/UIScene.hpp"
-#include "minecraft/src-client/common/client/gui/screens/ScreenController.hpp"
-#include "minecraft/src/common/world/containers/ContainerFactory.hpp"
-#include "minecraft/src/common/world/inventory/FillingContainer.hpp"
+#include "mc/src/common/Minecraft.hpp"
+#include "mc/src/common/network/packet/ContainerOpenPacket.hpp"
+#include "mc/src/common/network/packet/InventoryContentPacket.hpp"
+#include "mc/src/common/world/actor/player/Player.hpp"
+#include "mc/src/common/server/ServerPlayer.hpp"
+#include "mc/src-client/common/client/gui/screens/SceneCreationUtils.hpp"
+#include "mc/src-client/common/client/gui/screens/UIScene.hpp"
+#include "mc/src-client/common/client/gui/screens/ScreenController.hpp"
+#include "mc/src/common/world/containers/ContainerFactory.hpp"
+#include "mc/src/common/world/inventory/FillingContainer.hpp"
 
 AlchemicalBagItem::AlchemicalBagItem(const std::string& name, short id, const std::string& color) :
 	Item(name, id),

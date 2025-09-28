@@ -1,19 +1,24 @@
 ﻿#include "dllmain.hpp"
 #include "amethyst/runtime/events/RegisterEvents.hpp"
+#include "amethyst/runtime/events/GameEvents.hpp"
 
 #include "features/hooks/Hooks.hpp"
 #include "features/items/Items.hpp"
 #include "features/blocks/Blocks.hpp"
 #include "features/containers/AlchemicalBagContainer.hpp"
 #include "features/components/AlchemicalBagContainerComponent.hpp"
+#include "features/emc/EMCRepository.hpp"
 
-#include "minecraft/src/common/world/item/registry/ItemRegistry.hpp"
-#include "minecraft/src/common/world/item/Item.hpp"
-#include "minecraft/src-client/common/client/gui/screens/controllers/MinecraftScreenController.hpp"
-#include "minecraft/src/common/world/actor/player/Player.hpp"
-#include "minecraft/src/common/world/actor/player/Inventory.hpp"
-#include "minecraft/src/common/world/containers/models/ContainerModel.hpp"
-#include "minecraft/src/common/world/inventory/FillingContainer.hpp"
+#include "mc/src/common/world/item/registry/ItemRegistry.hpp"
+#include "mc/src/common/world/item/Item.hpp"
+#include "mc/src-client/common/client/gui/screens/controllers/MinecraftScreenController.hpp"
+#include "mc/src/common/world/actor/player/Player.hpp"
+#include "mc/src/common/world/actor/player/Inventory.hpp"
+#include "mc/src/common/world/containers/models/ContainerModel.hpp"
+#include "mc/src/common/world/inventory/FillingContainer.hpp"
+#include "mc/src/common/world/item/registry/ItemRegistryManager.hpp"
+
+#include "mod_menu/Test.hpp"
 
 ActorContainerType AlchemicalBagContainerType;
 
@@ -42,4 +47,7 @@ ModFunction void Initialize(AmethystContext& ctx, const Amethyst::Mod& mod)
 
     // Register game hooks
 	CreateAllHooks(ctx);
+	ee2::emc::EMCRepository::initDefaultItems();
+
+    ModMenu::Test();
 }

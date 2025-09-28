@@ -1,7 +1,7 @@
 #pragma once
-#include "minecraft/src/common/world/inventory/FillingContainer.hpp"
-#include "minecraft/src/common/world/actor/player/Player.hpp"
-#include "minecraft/src/common/world/actor/player/Inventory.hpp"
+#include "mc/src/common/world/inventory/FillingContainer.hpp"
+#include "mc/src/common/world/actor/player/Player.hpp"
+#include "mc/src/common/world/actor/player/Inventory.hpp"
 
 class AlchemicalBagContainer :
 	public FillingContainer

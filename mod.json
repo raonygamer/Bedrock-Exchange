@@ -6,6 +6,18 @@
         "friendlyname": "Equivalent Exchange 2",
         "logname": "EE2",
         "version": "1.0.0",
-        "author": "ryd3v"
+        "author": "ryd3v",
+        "dependencies": [
+            {
+                "dependency_uuid": "e56c3987-fd4a-4590-9923-a07fc4be7250",
+                "dependency_namespace": "amethyst",
+                "version_range": ">=2.0.0 <2.1.0"
+            },
+            {
+                "dependency_uuid": "796eec47-d8d6-4ee9-ac1f-ea6854025b38",
+                "dependency_namespace": "ryd_modmenu",
+                "version_range": ">=0.0.0"
+            }
+        ]
     }
 }

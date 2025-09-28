@@ -1,25 +1,30 @@
-#include "features/hooks/Hooks.hpp"
+﻿#include "features/hooks/Hooks.hpp"
 #include "features/components/AlchemicalBagContainerComponent.hpp"
 #include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
 #include "features/ModGlobals.hpp"
+#include "features/emc/EMCRepository.hpp"
 
 #include "amethyst/runtime/AmethystContext.hpp"
 #include "amethyst/runtime/ModContext.hpp"
 
-#include "minecraft/src/common/world/containers/models/ContainerModel.hpp"
-#include "minecraft/src/common/world/actor/player/Player.hpp"
-#include "minecraft/src/common/world/containers/ContainerValidation.hpp"
-#include "minecraft/src/common/world/inventory/network/SparseContainer.hpp"
-#include "minecraft/src/common/world/inventory/simulation/validation/ContainerScreenValidation.hpp"
-#include "minecraft/src/common/world/inventory/network/ItemStackNetManagerServer.hpp"
-#include "minecraft/src/common/world/inventory/network/ItemStackRequestActionHandler.hpp"
-#include "minecraft/src/common/world/inventory/simulation/ContainerValidatorFactory.hpp"
+#include "mc/src/common/world/containers/models/ContainerModel.hpp"
+#include "mc/src/common/world/actor/player/Player.hpp"
+#include "mc/src/common/world/containers/ContainerValidation.hpp"
+#include "mc/src/common/world/inventory/network/SparseContainer.hpp"
+#include "mc/src/common/world/inventory/simulation/validation/ContainerScreenValidation.hpp"
+#include "mc/src/common/world/inventory/network/ItemStackNetManagerServer.hpp"
+#include "mc/src/common/world/inventory/network/ItemStackRequestActionHandler.hpp"
+#include "mc/src/common/world/inventory/simulation/ContainerValidatorFactory.hpp"
+#include <mc/src/common/world/item/ItemStack.hpp>
+#include <mc/src/common/world/level/Level.hpp>
+#include "mc/src/common/world/item/crafting/Recipes.hpp"
 
 extern ActorContainerType AlchemicalBagContainerType;
 SafetyHookInline _Player_$constructor;
 SafetyHookInline _ContainerWeakRef_tryGetActorContainer;
 SafetyHookInline _Player_readAdditionalSaveData;
 SafetyHookInline _Player_addAdditionalSaveData;
+SafetyHookInline _Recipes_init;
 
 void Player_readAdditionalSaveData(Player* self, const CompoundTag& tag, DataLoadHelper& helper) {
     _Player_readAdditionalSaveData.thiscall<
@@ -105,9 +110,67 @@ Container* ContainerValidatorFactory_getBackingContainer(ContainerEnumName name,
     >(name, ctx);
 }
 
+struct dot_separator : std::numpunct<char> {
+protected:
+    char do_thousands_sep() const override { return ','; }
+    std::string do_grouping() const override { return "\3"; }
+};
+
+SafetyHookInline _Item_appendFormattedHovertext;
+void Item_appendFormattedHovertext(const Item* self, const ItemStackBase& stack, Level& level, std::string& hovertext, bool showCategory)
+{
+    _Item_appendFormattedHovertext.thiscall<
+        void,
+        const Item*,
+        const ItemStackBase&,
+        Level&,
+        std::string&,
+        bool
+    >(self, stack, level, hovertext, showCategory);
+    uint64_t emc = ee2::emc::IEMCMapper::calculateItemEMC(
+        ee2::emc::EMCRepository::getBaseEMCForItem(*self).value_or(0),
+        stack
+    );
+
+	if (emc == 0)
+		return;
+	uint64_t stackEMC = ee2::emc::IEMCMapper::calculateStackEMC(emc, stack);
+
+	std::stringstream ss;
+    // You imbue the Scroll of stringstream with the essence of dot_separator. 
+    // Its output now gleams with the power of thousand properly formatted numbers and dates!
+    // Being fr now, why the hell does the STL named that function imbue lmao
+	ss.imbue(std::locale(ss.getloc(), new dot_separator));
+    ss.str("");
+	ss.clear();
+	ss << emc;
+    hovertext += std::format("\n§eEMC: §f{}§r", ss.str());
+    if (stack.mCount > 1) {
+        ss.str("");
+        ss.clear();
+		ss << stackEMC;
+        hovertext += std::format("\n§eStack EMC: §f{}§r", ss.str());
+	}
+}
+
+void Recipes_init(Recipes* self, ResourcePackManager& rpm, ExternalRecipeStore& ers, const BaseGameVersion& bgv, const Experiments& exp) {
+    _Recipes_init.thiscall<
+        void,
+		Recipes*,
+		ResourcePackManager&,
+		ExternalRecipeStore&,
+		const BaseGameVersion&,
+		const Experiments&
+    >(self, rpm, ers, bgv, exp);
+    Log::Info("Recipes initialized, loading EMC values...");
+	ee2::emc::EMCRepository::initRecipeItems(*self);
+}
+
 void CreateAllHooks(AmethystContext& ctx) {
     auto& hooks = *ctx.mHookManager;
     HOOK(Player, $constructor);
     HOOK(ContainerWeakRef, tryGetActorContainer);
 	HOOK(ContainerValidatorFactory, getBackingContainer);
+    VHOOK(Item, appendFormattedHovertext, this);
+	HOOK(Recipes, init);
 }

@@ -14,6 +14,8 @@ set_languages("c++23")
 local automated = is_config("automated_build", true)
 local modFolder
 local amethystApiPath
+local modMenuPath
+local modMenuProjPath
 
 if automated then
     modFolder = path.join(os.projectdir(), "dist")
@@ -21,7 +23,9 @@ if automated then
 else
     set_symbols("debug")
     local amethystSrc = os.getenv("AMETHYST_SRC")
+    local modMenuSrc = os.getenv("MODMENU_SRC")
     amethystApiPath = amethystSrc and path.join(amethystSrc, "AmethystAPI") or nil
+    modMenuProjPath = modMenuSrc
 
     local amethystFolder = path.join(
         os.getenv("localappdata"),
@@ -37,6 +41,20 @@ else
         amethystFolder,
         "mods",
         string.format("%s@%s", mod_name, modVer)
+    )
+
+    modMenuPath = path.join(
+        amethystFolder,
+        "mods",
+        "ModMenu@0.0.0-dev",
+        "ModMenu.lib"
+    )
+
+    modMenuPath = path.join(
+        amethystFolder,
+        "mods",
+        "ModMenu@0.0.0-dev",
+        "ModMenu.lib"
     )
 end
 
@@ -135,6 +153,10 @@ target(mod_name)
     set_policy("build.across_targets_in_parallel", true )
 
     add_files("src/**.cpp")
+    if is_plat("windows") and is_host("windows") then
+        add_cxflags("/utf-8", {force = true})
+    end
+    add_shflags("/LTCG", { force = true })
 
     -- Uncomment if you plan to use ASM
     -- add_files("src/**.asm")
@@ -152,10 +174,13 @@ target(mod_name)
     -- Deps
     add_packages("Runtime-Importer")
     add_packages("AmethystAPI", "libhat")
-    add_links("user32", "oleaut32", "windowsapp", path.join(os.curdir(), ".importer/lib/Minecraft.Windows.lib"))
+    add_links("user32", "oleaut32", "windowsapp", path.join(os.curdir(), ".importer/lib/Minecraft.Windows.lib"), modMenuPath)
 
     add_includedirs("src", {public = true})
+    add_includedirs(path.join(modMenuProjPath, "src/include"), {public = true})
+    add_includedirs("inc", {public = true})
     add_headerfiles("src/**.hpp")
+    add_headerfiles("inc/**.hpp")
 
     before_build(function (target)
         local importer_dir = path.join(os.curdir(), ".importer");
@@ -167,7 +192,7 @@ target(mod_name)
             ".importer/bin/Amethyst.SymbolGenerator.exe",
             "--input", string.format("%s", input_dir),
             "--output", string.format("%s", generated_dir),
-            "--filters", "minecraft",
+            "--filters", "mc",
             "--",
             "-x c++",
             "-include-pch", path.join(generated_dir, "pch.hpp.pch"),

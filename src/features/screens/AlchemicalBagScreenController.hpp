@@ -1,5 +1,5 @@
 #pragma once
-#include "minecraft/src-client/common/client/gui/screens/controllers/ContainerScreenController.hpp"
+#include "mc/src-client/common/client/gui/screens/controllers/ContainerScreenController.hpp"
 
 class AlchemicalBagScreenController : 
 	public ContainerScreenController 

@@ -1,7 +1,7 @@
 #include "Blocks.hpp"
-#include "minecraft/src/common/world/level/block/definition/BlockDefinitionGroup.hpp"
-#include "minecraft/src/common/world/level/block/registry/BlockTypeRegistry.hpp"
-#include "minecraft/src-client/common/client/renderer/block/BlockGraphics.hpp"
+#include "mc/src/common/world/level/block/definition/BlockDefinitionGroup.hpp"
+#include "mc/src/common/world/level/block/registry/BlockTypeRegistry.hpp"
+#include "mc/src-client/common/client/renderer/block/BlockGraphics.hpp"
 
 std::unordered_map<std::string, WeakPtr<BlockLegacy>> Blocks::sBlocks;
 

@@ -1,6 +1,6 @@
 #pragma once
-#include "minecraft/src/common/world/containers/managers/models/LevelContainerManagerModel.hpp"
-#include "minecraft/src/common/world/actor/player/Player.hpp"
+#include "mc/src/common/world/containers/managers/models/LevelContainerManagerModel.hpp"
+#include "mc/src/common/world/actor/player/Player.hpp"
 
 class AlchemicalBagManagerModel :
 	public LevelContainerManagerModel

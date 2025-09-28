@@ -3,9 +3,9 @@
 #include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
 #include "features/containers/managers/controllers/AlchemicalBagManagerController.hpp"
 
-#include "minecraft/src/common/world/containers/ContainerFactory.hpp"
-#include "minecraft/src/common/world/actor/player/Player.hpp"
-#include "minecraft/src/common/locale/I18n.hpp"
+#include "mc/src/common/world/containers/ContainerFactory.hpp"
+#include "mc/src/common/world/actor/player/Player.hpp"
+#include "mc/src/common/locale/I18n.hpp"
 
 #include "Json.hpp"
 

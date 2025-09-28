@@ -3,11 +3,11 @@
 #include "features/items/AlchemicalBagItem.hpp"
 #include "features/ModGlobals.hpp"
 
-#include "minecraft/src-client/common/client/game/ClientInstance.hpp"
-#include "minecraft/src-client/common/client/gui/screens/models/MinecraftScreenModel.hpp"
-#include "minecraft/src-client/common/client/gui/screens/SceneCreationUtils.hpp"
-#include "minecraft/src-deps/core/utility/ServiceLocator.hpp"
-#include "minecraft/src/common/world/item/BlockItem.hpp"
+#include "mc/src-client/common/client/game/ClientInstance.hpp"
+#include "mc/src-client/common/client/gui/screens/models/MinecraftScreenModel.hpp"
+#include "mc/src-client/common/client/gui/screens/SceneCreationUtils.hpp"
+#include "mc/src-deps/core/utility/ServiceLocator.hpp"
+#include "mc/src/common/world/item/BlockItem.hpp"
 
 std::unordered_map<std::string, WeakPtr<AlchemicalBagItem>> sAlchemicalBags;
 

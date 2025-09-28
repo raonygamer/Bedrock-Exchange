@@ -1,10 +1,10 @@
 #pragma once
-#include "minecraft/src/common/world/containers/managers/controllers/ContainerManagerController.hpp"
-#include "minecraft/src/common/world/containers/managers/models/ContainerManagerModel.hpp"
-#include "minecraft/src/common/world/actor/player/Player.hpp"
-#include "minecraft/src/common/world/actor/player/Inventory.hpp"
-#include "minecraft/src/common/world/containers/controllers/ContainerController.hpp"
-#include "minecraft/src/common/world/containers/models/ContainerModel.hpp"
+#include "mc/src/common/world/containers/managers/controllers/ContainerManagerController.hpp"
+#include "mc/src/common/world/containers/managers/models/ContainerManagerModel.hpp"
+#include "mc/src/common/world/actor/player/Player.hpp"
+#include "mc/src/common/world/actor/player/Inventory.hpp"
+#include "mc/src/common/world/containers/controllers/ContainerController.hpp"
+#include "mc/src/common/world/containers/models/ContainerModel.hpp"
 
 class AlchemicalBagManagerModel;
 

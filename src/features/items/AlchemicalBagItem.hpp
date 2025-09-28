@@ -1,5 +1,5 @@
 #pragma once
-#include "minecraft/src/common/world/item/Item.hpp"
+#include "mc/src/common/world/item/Item.hpp"
 
 class AlchemicalBagItem : public Item {
 public:

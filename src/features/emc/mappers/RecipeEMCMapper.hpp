@@ -9,12 +9,16 @@ namespace ee2::emc {
 	{
 	protected:
 		Recipes& mRecipes;
-		std::unordered_map<HashedString, uint64_t> mEMCValues;
+		std::vector<std::pair<ItemID, uint64_t>> mEMCValues;
 	public:
 		RecipeEMCMapper(Recipes& recipes);
 		void init() override;
-		std::optional<EMCResult> getEMC(const Item& item) override;
+		EMCValue getEMC(const ItemID& identifier) override;
+		bool canHandleTags() override;
+		EMCValue getEMCByTag(const ItemTag& tag) override;
 		std::string getMapperName() override;
-		bool hasEMC(const Item& item) override;
+		void setEMC(const ItemID& identifier, uint64_t emc) override;
+
+		uint64_t resolveIngredientEMC(const RecipeIngredient& ingredient);
 	};
 } // namespace ee2::emc

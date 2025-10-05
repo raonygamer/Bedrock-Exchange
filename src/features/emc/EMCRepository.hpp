@@ -13,11 +13,12 @@ class Recipes;
 namespace ee2::emc {
 class EMCRepository {
 	static std::vector<std::unique_ptr<IEMCMapper>> mAllMappers;
-	static std::unordered_map<HashedString, uint64_t> mCachedEMCValues;
+	static std::vector<std::pair<ItemID, EMCValue>> mCachedEMCValues;
+	static std::unordered_map<HashedString, EMCValue> mTagCachedEMCValues;
 public:
-	static void initDefaultItems();
-	static void initRecipeItems(Recipes& recipes);
-	static std::optional<uint64_t> getBaseEMCForItem(const Item& item);
+	static void init(Recipes& recipes);
+	static EMCValue getItemEMC(const ItemID& identifier, bool noCache = false, bool lookupTags = true);
+	static EMCValue getItemEMCByTag(const ItemTag& tag, bool noCache = false);
 	static void clearCache();
 
 	template<typename T, typename... Args>

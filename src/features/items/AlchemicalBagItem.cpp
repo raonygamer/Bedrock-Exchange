@@ -35,7 +35,7 @@ AlchemicalBagItem::AlchemicalBagItem(const std::string& name, short id, const st
 		setIconInfo("ee2:alchemical_bag", index);
 	mMaxStackSize = 1;
 	mCreativeCategory = CreativeItemCategory::Items;
-	mCreativeGroup = "ee2:itemGroup.name.alchemical_bags";
+	mCreativeGroup = "itemGroup.name.ee2:alchemical_bags";
 }
 
 ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const

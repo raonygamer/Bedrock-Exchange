@@ -67,6 +67,9 @@ end
 -- RelWithDebInfo flags
 add_cxxflags("/O2", "/DNDEBUG", "/MD", "/EHsc", "/FS", "/MP")
 add_ldflags("/OPT:REF", "/OPT:ICF", "/INCREMENTAL:NO", {force = true})
+set_policy("check.auto_ignore_flags", false)
+add_ldflags("/LTCG", {force = true})
+add_shflags("/LTCG", {force = true})
 
 set_targetdir(modFolder)
 set_toolchains("msvc", {asm = "nasm"})
@@ -178,9 +181,7 @@ target(mod_name)
 
     add_includedirs("src", {public = true})
     add_includedirs(path.join(modMenuProjPath, "src/include"), {public = true})
-    add_includedirs("inc", {public = true})
     add_headerfiles("src/**.hpp")
-    add_headerfiles("inc/**.hpp")
 
     before_build(function (target)
         local importer_dir = path.join(os.curdir(), ".importer");

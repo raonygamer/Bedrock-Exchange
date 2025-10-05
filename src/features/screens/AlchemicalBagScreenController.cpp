@@ -87,7 +87,7 @@ void AlchemicalBagScreenController::_registerBindings()
 	std::string itemName = std::format("item.{}.name", mItem->mFullName.getString());
 	itemName = getI18n().get(itemName, nullptr);
 
-	bindString({ StringToNameId("#container_name") }, [itemName]() {
+	bindString("#container_name", [itemName]() {
 		return itemName;
 	}, []() { return true; });
 }

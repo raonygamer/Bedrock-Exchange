@@ -3,6 +3,11 @@
 #include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
 #include "features/ModGlobals.hpp"
 #include "features/emc/EMCRepository.hpp"
+#include "features/emc/EMCUtils.hpp"
+#include "features/items/Items.hpp"
+#include "features/items/ChargeableItem.hpp"
+#include "features/blocks/Blocks.hpp"
+#include "features/blocks/actor/AlchemicalChestBlockActor.hpp"
 
 #include "amethyst/runtime/AmethystContext.hpp"
 #include "amethyst/runtime/ModContext.hpp"
@@ -15,9 +20,18 @@
 #include "mc/src/common/world/inventory/network/ItemStackNetManagerServer.hpp"
 #include "mc/src/common/world/inventory/network/ItemStackRequestActionHandler.hpp"
 #include "mc/src/common/world/inventory/simulation/ContainerValidatorFactory.hpp"
-#include <mc/src/common/world/item/ItemStack.hpp>
-#include <mc/src/common/world/level/Level.hpp>
+#include "mc/src/common/world/item/ItemStack.hpp"
 #include "mc/src/common/world/item/crafting/Recipes.hpp"
+#include "mc/src/common/world/item/alchemy/PotionBrewing.hpp"
+#include "mc/src/common/world/level/Level.hpp"
+#include "mc/src/common/world/item/registry/TrimMaterialRegistry.hpp"
+#include "mc/src/common/world/item/registry/TrimPatternRegistry.hpp"
+#include "mc/src-client/common/client/renderer/blockActor/ChestRenderer.hpp"
+#include "mc/src-client/common/client/gui/screens/controllers/HudScreenController.hpp"
+#include "mc/src-client/common/client/gui/controls/UIPropertyBag.hpp"
+#include "mc/src/common/world/item/VanillaItems.hpp"
+
+using namespace ee2::emc;
 
 extern ActorContainerType AlchemicalBagContainerType;
 SafetyHookInline _Player_$constructor;
@@ -25,6 +39,12 @@ SafetyHookInline _ContainerWeakRef_tryGetActorContainer;
 SafetyHookInline _Player_readAdditionalSaveData;
 SafetyHookInline _Player_addAdditionalSaveData;
 SafetyHookInline _Recipes_init;
+SafetyHookInline _ContainerValidatorFactory_getBackingContainer;
+SafetyHookInline _Item_appendFormattedHovertext;
+SafetyHookInline _BlockActorFactory_createBlockEntity;
+SafetyHookInline _VanillaItems__addItemsCategory;
+SafetyHookInline _ContainerScreenController__registerBindings;
+SafetyHookInline _HudScreenController_$constructor;
 
 void Player_readAdditionalSaveData(Player* self, const CompoundTag& tag, DataLoadHelper& helper) {
     _Player_readAdditionalSaveData.thiscall<
@@ -33,7 +53,6 @@ void Player_readAdditionalSaveData(Player* self, const CompoundTag& tag, DataLoa
 		const CompoundTag&,
 		DataLoadHelper&
     >(self, tag, helper);
-	Log::Info("Player readAdditionalSaveData called");
 }
 
 void Player_addAdditionalSaveData(Player* self, CompoundTag& tag) {
@@ -42,7 +61,6 @@ void Player_addAdditionalSaveData(Player* self, CompoundTag& tag) {
         Player*,
         CompoundTag&
     >(self, tag);
-    Log::Info("Player addAdditionalSaveData called");
 }
 
 
@@ -89,7 +107,6 @@ Container* ContainerWeakRef_tryGetActorContainer(Actor& actor, ActorContainerTyp
     >(actor, type);
 }
 
-SafetyHookInline _ContainerValidatorFactory_getBackingContainer;
 Container* ContainerValidatorFactory_getBackingContainer(ContainerEnumName name, const ContainerScreenContext& ctx) {
     if (ctx.mScreenContainerType == ContainerType::CONTAINER && name == ContainerEnumName::LevelEntityContainer)
     {
@@ -112,11 +129,37 @@ Container* ContainerValidatorFactory_getBackingContainer(ContainerEnumName name,
 
 struct dot_separator : std::numpunct<char> {
 protected:
-    char do_thousands_sep() const override { return ','; }
+    char do_thousands_sep() const override { return '.'; }
     std::string do_grouping() const override { return "\3"; }
 };
 
-SafetyHookInline _Item_appendFormattedHovertext;
+std::string stringify(const CompoundTag& tag, int indent) {
+    std::string result = "{\n";
+    std::string indentStr(indent, ' ');
+
+    for (const auto& [key, value] : tag.mTags) {
+        result += indentStr + key + ": ";
+        if (auto* subCompound = value.get<CompoundTag>()) {
+            result += stringify(*subCompound, indent + 2);
+        }
+        else if (auto* listTag = value.get<ListTag>()) {
+            result += "[\n";
+            std::string listIndentStr(indent + 2, ' ');
+            for (const auto& item : listTag->mList) {
+                result += listIndentStr + item->toString() + "\n";
+            }
+            result += indentStr + "]\n";
+		}
+        else {
+            result += value.get()->toString();
+            result += "\n";
+        }
+    }
+
+    result += std::string(indent - 2, ' ') + "}\n";
+    return result;
+}
+
 void Item_appendFormattedHovertext(const Item* self, const ItemStackBase& stack, Level& level, std::string& hovertext, bool showCategory)
 {
     _Item_appendFormattedHovertext.thiscall<
@@ -127,20 +170,23 @@ void Item_appendFormattedHovertext(const Item* self, const ItemStackBase& stack,
         std::string&,
         bool
     >(self, stack, level, hovertext, showCategory);
-    uint64_t emc = ee2::emc::IEMCMapper::calculateItemEMC(
-        ee2::emc::EMCRepository::getBaseEMCForItem(*self).value_or(0),
-        stack
+
+    uint64_t emc = EMCUtils::calculateItemEMC(
+        EMCRepository::getItemEMC(ItemID::fromStack(stack)).emc,
+        stack,
+        level
     );
 
 	if (emc == 0)
 		return;
-	uint64_t stackEMC = ee2::emc::IEMCMapper::calculateStackEMC(emc, stack);
+	uint64_t stackEMC = EMCUtils::calculateStackEMC(emc, stack);
 
-	std::stringstream ss;
-    // You imbue the Scroll of stringstream with the essence of dot_separator. 
-    // Its output now gleams with the power of thousand properly formatted numbers and dates!
-    // Being fr now, why the hell does the STL named that function imbue lmao
-	ss.imbue(std::locale(ss.getloc(), new dot_separator));
+	static bool first = true;
+    static std::stringstream ss;
+    if (first) {
+        ss.imbue(std::locale(ss.getloc(), new dot_separator));
+		first = false;
+    }
     ss.str("");
 	ss.clear();
 	ss << emc;
@@ -162,8 +208,188 @@ void Recipes_init(Recipes* self, ResourcePackManager& rpm, ExternalRecipeStore& 
 		const BaseGameVersion&,
 		const Experiments&
     >(self, rpm, ers, bgv, exp);
-    Log::Info("Recipes initialized, loading EMC values...");
-	ee2::emc::EMCRepository::initRecipeItems(*self);
+    Log::Info("Mapping EMC values...");
+	ee2::emc::EMCRepository::init(*self);
+}
+
+std::shared_ptr<BlockActor> BlockActorFactory_createBlockEntity(BlockActorType type, const BlockPos& pos, const BlockLegacy& block) {
+    if (type == CustomBlockActorType::AlchemicalChest) {
+		return std::make_shared<AlchemicalChestBlockActor>(pos);
+    }
+    return _BlockActorFactory_createBlockEntity.call<
+        std::shared_ptr<BlockActor>,
+        BlockActorType,
+        const BlockPos&,
+		const BlockLegacy&
+    >(type, pos, block);
+
+}
+
+void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, ItemRegistryRef registry, const BaseGameVersion& version, const Experiments& experiments) {
+    _VanillaItems__addItemsCategory.call<
+        void,
+        CreativeItemRegistry*,
+        ItemRegistryRef,
+		const BaseGameVersion&,
+		const Experiments&
+	>(creativeItemRegistry, registry, version, experiments);
+    Item::addCreativeItem(registry, *Blocks::sBlocks["ee2:alchemical_chest"]->mDefaultState);
+}
+
+bool ContainerScreenController_Lambdas_ShouldShowItemStackDurability_DoCall(
+    ContainerScreenController::Lambdas::ShouldShowItemStackDurability* self,
+	const std::string& collection,
+    int index
+) {
+    return true;
+}
+
+static const ChargeableItem* getChargeableItem(const ItemStackBase& stack) {
+    if (stack.isNull())
+        return nullptr;
+    const Item* item = stack.getItem();
+    if (!item->hasTag("ee2:chargeable_item"))
+        return nullptr;
+    return static_cast<const ChargeableItem*>(item);
+};
+
+void ContainerScreenController__registerBindings(ContainerScreenController* self) {
+    _ContainerScreenController__registerBindings.thiscall(self);
+    
+
+    self->bindBoolForAnyCollection("#item_charge_visible", [self](const std::string& collection, int index) {
+        const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
+        const ChargeableItem* chargeableItem = getChargeableItem(stack);
+        if (!chargeableItem)
+            return false;
+        short currentCharge = chargeableItem->getCharge(stack);
+        if (currentCharge == chargeableItem->mMaxCharge)
+            return false;
+        return true;
+    }, [&](const std::string&, int) { 
+        return true; 
+    });
+
+    self->bindBool("#selected_item_charge_visible", [self]() {
+        const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
+        const ItemStackBase& stack = cursorItemGroup.getItemInstance();
+        const ChargeableItem* chargeableItem = getChargeableItem(stack);
+        if (!chargeableItem)
+            return false;
+        short currentCharge = chargeableItem->getCharge(stack);
+        if (currentCharge == chargeableItem->mMaxCharge)
+            return false;
+        return true;
+    }, [] {
+        return true;
+    });
+
+    self->bindFloatForAnyCollection("#item_charge_current_amount", [self](const std::string& collection, int index) {
+        const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
+        const ChargeableItem* chargeableItem = getChargeableItem(stack);
+        if (!chargeableItem)
+            return 0.0f;
+        return static_cast<float>(chargeableItem->getCharge(stack));
+    }, [&](const std::string&, int) {
+        return true;
+    });
+
+    self->bindFloat("#selected_item_charge_current_amount", [self]() {
+        const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
+        const ItemStackBase& stack = cursorItemGroup.getItemInstance();
+        const ChargeableItem* chargeableItem = getChargeableItem(stack);
+        if (!chargeableItem)
+            return 0.0f;
+        return static_cast<float>(chargeableItem->getCharge(stack));
+    }, [] {
+        return true;
+    });
+
+    self->bindFloatForAnyCollection("#item_charge_total_amount", [self](const std::string& collection, int index) {
+        const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
+        const ChargeableItem* chargeableItem = getChargeableItem(stack);
+        if (!chargeableItem)
+            return 0.0f;
+        return static_cast<float>(chargeableItem->mMaxCharge);
+    }, [&](const std::string&, int) {
+        return true;
+    });
+
+    self->bindFloat("#selected_item_charge_total_amount", [self]() {
+        const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
+        const ItemStackBase& stack = cursorItemGroup.getItemInstance();
+        const ChargeableItem* chargeableItem = getChargeableItem(stack);
+        if (!chargeableItem)
+            return 0.0f;
+        return static_cast<float>(chargeableItem->mMaxCharge);
+    }, [] {
+        return true;
+    });
+}
+
+SafetyHookInline _HudScreenController_bind;
+bool HudScreenController_bind(
+    HudScreenController* self, 
+    const std::string& collectionName, 
+    uint32_t collectionNameHash, 
+    int collectionIndex, 
+    const std::string& bindingName, 
+    uint32_t bindingNameHash, 
+    const std::string& bindingNameOverride, 
+    UIPropertyBag& bag) 
+{
+    static uint32_t itemChargeVisibleHash = StringToNameId("#item_charge_visible");
+    static uint32_t itemChargeCurrentHash = StringToNameId("#item_charge_current_amount");
+    static uint32_t itemChargeTotalHash = StringToNameId("#item_charge_total_amount");
+
+    if (bindingNameHash == itemChargeVisibleHash) {
+        const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
+		const ChargeableItem* chargeableItem = getChargeableItem(stack);
+		bool value = false;
+        if (chargeableItem)
+            value = chargeableItem->getCharge(stack) < chargeableItem->mMaxCharge;
+        bag.set<bool>(bindingNameOverride, value);
+        return true;
+    }
+    else if (bindingNameHash == itemChargeCurrentHash) {
+        const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
+        const ChargeableItem* chargeableItem = getChargeableItem(stack);
+		float value = 0.0f;
+        if (chargeableItem)
+			value = static_cast<float>(chargeableItem->getCharge(stack));
+        bag.set<float>(bindingNameOverride, value);
+		return true;
+    }
+    else if (bindingNameHash == itemChargeTotalHash) {
+        const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
+        const ChargeableItem* chargeableItem = getChargeableItem(stack);
+		float value = 0.0f;
+		if (chargeableItem)
+            value = static_cast<float>(chargeableItem->mMaxCharge);
+		bag.set<float>(bindingNameOverride, value);
+		return true;
+    }
+
+    return _HudScreenController_bind.thiscall<
+        bool,
+		HudScreenController*,
+		const std::string&,
+		uint32_t,
+		int,
+		const std::string&,
+		uint32_t,
+		const std::string&,
+		UIPropertyBag&
+	>(
+        self, 
+        collectionName, 
+        collectionNameHash, 
+        collectionIndex, 
+        bindingName, 
+        bindingNameHash, 
+        bindingNameOverride, 
+        bag
+    );
 }
 
 void CreateAllHooks(AmethystContext& ctx) {
@@ -173,4 +399,25 @@ void CreateAllHooks(AmethystContext& ctx) {
 	HOOK(ContainerValidatorFactory, getBackingContainer);
     VHOOK(Item, appendFormattedHovertext, this);
 	HOOK(Recipes, init);
+	HOOK(BlockActorFactory, createBlockEntity);
+	HOOK(VanillaItems, _addItemsCategory);
+    HOOK(ContainerScreenController, _registerBindings);
+
+	using BindFn = bool(HudScreenController::*)(
+        const std::string&,
+        uint32_t,
+        int,
+        const std::string&,
+        uint32_t,
+        const std::string&,
+        UIPropertyBag&
+    );
+
+    hooks.CreateHookAbsolute(
+        _HudScreenController_bind,
+        reinterpret_cast<uintptr_t*>(HudScreenController::$vtable_for_this)[
+			GetVirtualFunctionOffset<static_cast<BindFn>(&HudScreenController::bind)>() / sizeof(void*) + 1 // +1 because overloads are weird
+        ],
+        &HudScreenController_bind
+	);
 }

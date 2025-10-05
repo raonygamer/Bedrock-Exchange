@@ -9,4 +9,5 @@ public:
 
 	static void RegisterAllBlocks(RegisterBlocksEvent& event, AmethystContext& ctx);
 	static void InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext& ctx);
+	static void InitAllBlockEntityRenderers(InitBlockEntityRenderersEvent& event, AmethystContext& ctx);
 };

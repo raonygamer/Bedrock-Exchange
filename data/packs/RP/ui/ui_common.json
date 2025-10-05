@@ -1,0 +1,76 @@
+{
+    "namespace": "common",
+    "charge_bar": {
+        "type": "custom",
+        "renderer": "progress_bar_renderer",
+        "layer": 1,
+        "offset": [ 0, 0 ],
+        "property_bag": {
+            "drop_shadow": true,
+            "is_durability": true,
+            "round_value": true
+        },
+        "bindings": [
+            {
+                "binding_name": "#item_charge_visible",
+                "binding_name_override": "#touch_progress_bar_visible",
+                "binding_type": "collection",
+                "binding_collection_name": "$item_collection_name"
+            },
+            {
+                "binding_name": "#item_charge_total_amount",
+                "binding_name_override": "#progress_bar_total_amount",
+                "binding_type": "collection",
+                "binding_collection_name": "$item_collection_name"
+            },
+            {
+                "binding_name": "#item_charge_current_amount",
+                "binding_name_override": "#progress_bar_current_amount",
+                "binding_type": "collection",
+                "binding_collection_name": "$item_collection_name"
+            }
+        ]
+    },
+    "selected_charge_bar@common.charge_bar": {
+        "layer": 1,
+        "bindings": [
+            {
+                "binding_name": "#selected_item_charge_visible",
+                "binding_name_override": "#touch_progress_bar_visible",
+                "binding_condition": "always_when_visible"
+            },
+            {
+                "binding_name": "#selected_item_charge_total_amount",
+                "binding_name_override": "#progress_bar_total_amount",
+                "binding_condition": "always_when_visible"
+            },
+            {
+                "binding_name": "#selected_item_charge_current_amount",
+                "binding_name_override": "#progress_bar_current_amount",
+                "binding_condition": "always_when_visible"
+            }
+        ]
+    },
+    "durability_bar": {
+        "modifications": [
+            {
+                "array_name": "controls",
+                "operation": "insert_back",
+                "value": {
+                    "charge@common.charge_bar": {}
+                }
+            }
+        ]
+    },
+    "durability_bar_grabbed": {
+        "modifications": [
+            {
+                "array_name": "controls",
+                "operation": "insert_back",
+                "value": {
+                    "charge@common.selected_charge_bar": {}
+                }
+            }
+        ]
+    }
+}

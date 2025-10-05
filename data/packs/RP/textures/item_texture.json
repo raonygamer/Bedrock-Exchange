@@ -1,5 +1,5 @@
 {
-    "resource_pack_name": "ee",
+    "resource_pack_name": "ee2",
     "texture_name": "atlas.items",
     "texture_data": {
         "ee2:alchemical_bag": {
@@ -20,6 +20,11 @@
                 "textures/items/alchemical_bags/red",
                 "textures/items/alchemical_bags/white",
                 "textures/items/alchemical_bags/yellow"
+            ]
+        },
+        "ee2:philosophers_stone": {
+            "textures": [
+                "textures/items/philosophers_stone"
             ]
         }
     }

@@ -1,0 +1,29 @@
+{
+    "format_version": 2,
+    "header": {
+        "name": "Equivalent Exchange",
+        "description": "By ryd3v",
+        "uuid": "daa5f8d3-a95a-4a88-abb2-6d41270c08e1",
+        "version": [
+            1,
+            0,
+            0
+        ],
+        "min_engine_version": [
+            1,
+            21,
+            0
+        ]
+    },
+    "modules": [
+        {
+            "type": "data",
+            "uuid": "a6d20944-9045-4e55-a01d-a3dd2df0eaaa",
+            "version": [
+                1,
+                0,
+                0
+            ]
+        }
+    ]
+}

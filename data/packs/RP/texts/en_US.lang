@@ -14,4 +14,6 @@ item.ee2:purple_alchemical_bag.name=Alchemical Bag (Purple)
 item.ee2:red_alchemical_bag.name=Alchemical Bag (Red)
 item.ee2:white_alchemical_bag.name=Alchemical Bag (White)
 item.ee2:yellow_alchemical_bag.name=Alchemical Bag (Yellow)
-item.group.ee2.alchemy_bags=Alchemical Bags
+item.ee2:philosophers_stone.name=Philosopher's Stone
+
+itemGroup.ee2:alchemical_bags.name=Alchemical Bags

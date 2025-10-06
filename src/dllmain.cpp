@@ -34,42 +34,58 @@
 
 ActorContainerType AlchemicalBagContainerType;
 
-class ChargeItemPacket : public Amethyst::CustomPacket {
+class UpdateItemChargePacket : public Amethyst::CustomPacket {
 public:
-    virtual std::string getName() const { return "ChargeItemPacket"; };
-    virtual void write(BinaryStream& out) {};
+    bool mCharge = false;
+
+    UpdateItemChargePacket() = default;
+	UpdateItemChargePacket(bool charge) : 
+        mCharge(charge) {}
+
+    virtual std::string getName() const { 
+        return "UpdateItemChargePacket"; 
+    };
+
+    virtual void write(BinaryStream& out) {
+		out.write(mCharge);
+    };
+
     virtual Bedrock::Result<void, std::error_code> read(ReadOnlyBinaryStream& in) {
-        return Bedrock::Result<void, std::error_code>();
+		return in.read(&mCharge, 1);
     };
 };
 
-class ChargeItemPacketHandler : public Amethyst::CustomPacketHandler {
+class UpdateItemChargePacketHandler : public Amethyst::CustomPacketHandler {
 public:
     virtual void handle(const NetworkIdentifier& networkId, NetEventCallback& netEvent, const Amethyst::CustomPacket& _packet) const override {
-        Log::Info("ChargeItemPacketHandler::handle");
-
         ServerNetworkHandler& serverNetwork = (ServerNetworkHandler&)netEvent;
         ServerPlayer* serverPlayer = serverNetwork._getServerPlayer(networkId, SubClientId::PrimaryClient);
 
         if (serverPlayer == nullptr) {
-            Log::Info("ChargeItemPacketHandler: ServerPlayer not found?");
+            Log::Info("UpdateItemChargePacket: ServerPlayer not found?");
             return;
         }
 
-        const PlayerInventory& inventory = serverPlayer->getSupplies();
+        PlayerInventory& inventory = serverPlayer->getSupplies();
         const ItemStack& mainhandStack = inventory.getSelectedItem();
 
-        if (!mainhandStack || mainhandStack.isNull())
+        if (!mainhandStack || mainhandStack.isNull() || !mainhandStack.getItem()->hasTag("ee2:chargeable_item"))
             return;
-        auto& handItem = const_cast<ItemStack&>(mainhandStack);
-        if (handItem.getItem()->mFullName == "ee2:philosophers_stone") {
-            const ChargeableItem& item = static_cast<const ChargeableItem&>(*handItem.getItem());
-            inventory.mInventory->createTransactionContext([](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
 
-            }, [&handItem, &item] {
-                item.charge(handItem);
-            });
-        }
+        const ChargeableItem& item = static_cast<const ChargeableItem&>(*mainhandStack.getItem());
+        ItemStack mainHandStackCopy = mainhandStack;
+
+		const UpdateItemChargePacket& packet = static_cast<const UpdateItemChargePacket&>(_packet);
+        
+        if (packet.mCharge)
+			item.charge(mainHandStackCopy);
+        else
+            item.uncharge(mainHandStackCopy);
+
+        inventory.mInventory->createTransactionContext([](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
+        }, [&inventory , &mainHandStackCopy, &item] {
+            inventory.setSelectedItem(mainHandStackCopy);
+        });
     }
 };
 
@@ -104,37 +120,48 @@ ModFunction void Initialize(AmethystContext& ctx, const Amethyst::Mod& mod)
             LocalPlayer& player = *client.getLocalPlayer();
             Level& level = static_cast<Level&>(*player.getLevel());
             PacketSender& packetSender = *level.mPacketSender;
-            Amethyst::GetNetworkManager().SendToServer(packetSender, std::make_unique<ChargeItemPacket>());
 
-            const PlayerInventory& inventory = player.getSupplies();
+            PlayerInventory& inventory = player.getSupplies();
             const ItemStack& mainhandStack = inventory.getSelectedItem();
 
-            if (!mainhandStack || mainhandStack.isNull())
+            if (!mainhandStack || mainhandStack.isNull() || !mainhandStack.getItem()->hasTag("ee2:chargeable_item"))
                 return Amethyst::InputPassthrough::Passthrough;
-            auto& handItem = const_cast<ItemStack&>(mainhandStack);
-            if (handItem.getItem()->mFullName == "ee2:philosophers_stone") {
-                const ChargeableItem& item = static_cast<const ChargeableItem&>(*handItem.getItem());
-                inventory.mInventory->createTransactionContext([](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
 
-                }, [&handItem, &item] {
-                    item.charge(handItem);
-                });
-                return Amethyst::InputPassthrough::Consume;
-            }
-            return Amethyst::InputPassthrough::Passthrough;
+            const ChargeableItem& item = static_cast<const ChargeableItem&>(*mainhandStack.getItem());
+            ItemStack mainHandStackCopy = mainhandStack;
+
+            item.charge(mainHandStackCopy);
+
+            inventory.mInventory->createTransactionContext([&packetSender](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
+                Amethyst::GetNetworkManager().SendToServer(packetSender, std::make_unique<UpdateItemChargePacket>(true));
+            }, [&inventory, &mainHandStackCopy, &item] {
+                inventory.setSelectedItem(mainHandStackCopy);
+            });
+            return Amethyst::InputPassthrough::Consume;
         };
 
-        auto unchargeButtonHandler = [&](FocusImpact focus, ClientInstance& clientInstance) {
-            auto* itemStackPtr = clientInstance.getLocalPlayer()->getAllHand()[0];
-            if (!itemStackPtr || itemStackPtr->isNull())
+        auto unchargeButtonHandler = [&](FocusImpact focus, ClientInstance& client) {
+            LocalPlayer& player = *client.getLocalPlayer();
+            Level& level = static_cast<Level&>(*player.getLevel());
+            PacketSender& packetSender = *level.mPacketSender;
+
+            PlayerInventory& inventory = player.getSupplies();
+            const ItemStack& mainhandStack = inventory.getSelectedItem();
+
+            if (!mainhandStack || mainhandStack.isNull() || !mainhandStack.getItem()->hasTag("ee2:chargeable_item"))
                 return Amethyst::InputPassthrough::Passthrough;
-            auto& handItem = const_cast<ItemStack&>(*itemStackPtr);
-            if (handItem.getItem()->mFullName == "ee2:philosophers_stone") {
-                const ChargeableItem& item = static_cast<const ChargeableItem&>(*handItem.getItem());
-                item.uncharge(handItem);
-                return Amethyst::InputPassthrough::Consume;
-            }
-            return Amethyst::InputPassthrough::Passthrough;
+
+            const ChargeableItem& item = static_cast<const ChargeableItem&>(*mainhandStack.getItem());
+            ItemStack mainHandStackCopy = mainhandStack;
+
+            item.uncharge(mainHandStackCopy);
+
+            inventory.mInventory->createTransactionContext([&packetSender](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
+                Amethyst::GetNetworkManager().SendToServer(packetSender, std::make_unique<UpdateItemChargePacket>(false));
+            }, [&inventory, &mainHandStackCopy, &item] {
+                inventory.setSelectedItem(mainHandStackCopy);
+            });
+            return Amethyst::InputPassthrough::Consume;
         };
 
         e.inputManager.RegisterNewInput("ee2.charge_item", { 'V' }, true)
@@ -150,7 +177,7 @@ ModFunction void Initialize(AmethystContext& ctx, const Amethyst::Mod& mod)
 
     // Register game hooks
 	CreateAllHooks(ctx);
-    ctx.mNetworkManager->RegisterPacketType<ChargeItemPacket>(std::make_unique<ChargeItemPacketHandler>());
+    ctx.mNetworkManager->RegisterPacketType<UpdateItemChargePacket>(std::make_unique<UpdateItemChargePacketHandler>());
 
     Log::Info("{:X}", (uint32_t)StringToNameId("#selected_item_durability_visible"));
     Log::Info("{:X}", (uint32_t)StringToNameId("#item_durability_visible"));

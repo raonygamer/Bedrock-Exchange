@@ -29,6 +29,7 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 		auto item = event.itemRegistry.registerItemShared<ChargeableItem>("ee2:philosophers_stone", ++event.itemRegistry.mMaxItemID, 5, 5);
 		item->setIconInfo("ee2:philosophers_stone", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
+		item->mCraftingRemainingItem = item.get();
 		PhilosophersStone = item;
 	}
 
@@ -38,6 +39,5 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 		Log::Info("Registering block item '{}'", name);
 		auto item = event.itemRegistry.registerItemShared<BlockItem>(name, block->getBlockItemId(), HashedString::EMPTY);
 		item->mCreativeCategory = CreativeItemCategory::Items;
-
 	}
 }

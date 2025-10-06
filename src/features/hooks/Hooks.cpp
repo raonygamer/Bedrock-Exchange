@@ -11,6 +11,7 @@
 
 #include "amethyst/runtime/AmethystContext.hpp"
 #include "amethyst/runtime/ModContext.hpp"
+#include "amethyst/runtime/utility/InlineHook.hpp"
 
 #include "mc/src/common/world/containers/models/ContainerModel.hpp"
 #include "mc/src/common/world/actor/player/Player.hpp"
@@ -34,41 +35,33 @@
 using namespace ee2::emc;
 
 extern ActorContainerType AlchemicalBagContainerType;
-SafetyHookInline _Player_$constructor;
-SafetyHookInline _ContainerWeakRef_tryGetActorContainer;
-SafetyHookInline _Player_readAdditionalSaveData;
-SafetyHookInline _Player_addAdditionalSaveData;
-SafetyHookInline _Recipes_init;
-SafetyHookInline _ContainerValidatorFactory_getBackingContainer;
-SafetyHookInline _Item_appendFormattedHovertext;
-SafetyHookInline _BlockActorFactory_createBlockEntity;
-SafetyHookInline _VanillaItems__addItemsCategory;
-SafetyHookInline _ContainerScreenController__registerBindings;
-SafetyHookInline _HudScreenController_$constructor;
-SafetyHookInline _HudScreenController_bind;
+
+Amethyst::InlineHook<decltype(&Player::$constructor)> _Player_$constructor;
+Amethyst::InlineHook<decltype(&ContainerWeakRef::tryGetActorContainer)> _ContainerWeakRef_tryGetActorContainer;
+Amethyst::InlineHook<decltype(&Player::readAdditionalSaveData)> _Player_readAdditionalSaveData;
+Amethyst::InlineHook<decltype(&Player::addAdditionalSaveData)> _Player_addAdditionalSaveData;
+Amethyst::InlineHook<decltype(&Recipes::init)> _Recipes_init;
+Amethyst::InlineHook<decltype(&ContainerValidatorFactory::getBackingContainer)> _ContainerValidatorFactory_getBackingContainer;
+Amethyst::InlineHook<decltype(&BlockActorFactory::createBlockEntity)> _BlockActorFactory_createBlockEntity;
+Amethyst::InlineHook<decltype(&Item::appendFormattedHovertext)> _Item_appendFormattedHovertext;
+Amethyst::InlineHook<decltype(&VanillaItems::_addItemsCategory)> _VanillaItems__addItemsCategory;
+Amethyst::InlineHook<decltype(&ContainerScreenController::_registerBindings)> _ContainerScreenController__registerBindings;
+Amethyst::InlineHook<decltype(&HudScreenController::$constructor)> _HudScreenController_$constructor;
+Amethyst::InlineHook<decltype(Amethyst::OverloadCast<bool(HudScreenController::*)(const std::string&, uint32_t, int, const std::string&, uint32_t, const std::string&, UIPropertyBag&)>(&HudScreenController::bind))> _HudScreenController_bind;
 
 void Player_readAdditionalSaveData(Player* self, const CompoundTag& tag, DataLoadHelper& helper) {
-    _Player_readAdditionalSaveData.thiscall<
-        void,
-		Player*,
-		const CompoundTag&,
-		DataLoadHelper&
-    >(self, tag, helper);
+    _Player_readAdditionalSaveData(self, tag, helper);
 }
 
 void Player_addAdditionalSaveData(Player* self, CompoundTag& tag) {
-    _Player_addAdditionalSaveData.thiscall<
-        void,
-        Player*,
-        CompoundTag&
-    >(self, tag);
+    _Player_addAdditionalSaveData(self, tag);
 }
 
 
 void Player_$constructor(Player* self, void* a2, void* a3, void* a4, void* a5, void* a6, void* a7, void* a8, void* a9, void* a10, void* a11, void* a12, void* a13, void* a14) {
-	_Player_$constructor.thiscall(self, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14);
+	_Player_$constructor(self, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14);
 
-    if (!self->isClientSide() && !_Player_readAdditionalSaveData.original<void*>() && !_Player_addAdditionalSaveData.original<void*>()) {
+    if (!self->isClientSide() && !_Player_readAdditionalSaveData) {
         auto& ctx = Amethyst::GetContext();
         ctx.mHookManager->CreateHookAbsolute(
 			_Player_readAdditionalSaveData,
@@ -101,11 +94,7 @@ Container* ContainerWeakRef_tryGetActorContainer(Actor& actor, ActorContainerTyp
             return component->mContainers[0].get();
         }
     }
-    return _ContainerWeakRef_tryGetActorContainer.call<
-        Container*,
-        Actor&,
-        ActorContainerType
-    >(actor, type);
+    return _ContainerWeakRef_tryGetActorContainer(actor, type);
 }
 
 Container* ContainerValidatorFactory_getBackingContainer(ContainerEnumName name, const ContainerScreenContext& ctx) {
@@ -121,11 +110,7 @@ Container* ContainerValidatorFactory_getBackingContainer(ContainerEnumName name,
             }
 		}
 	}
-    return _ContainerValidatorFactory_getBackingContainer.call<
-        Container*, 
-        ContainerEnumName, 
-        const ContainerScreenContext&
-    >(name, ctx);
+    return _ContainerValidatorFactory_getBackingContainer(name, ctx);
 }
 
 struct dot_separator : std::numpunct<char> {
@@ -136,14 +121,7 @@ protected:
 
 void Item_appendFormattedHovertext(const Item* self, const ItemStackBase& stack, Level& level, std::string& hovertext, bool showCategory)
 {
-    _Item_appendFormattedHovertext.thiscall<
-        void,
-        const Item*,
-        const ItemStackBase&,
-        Level&,
-        std::string&,
-        bool
-    >(self, stack, level, hovertext, showCategory);
+    _Item_appendFormattedHovertext(self, stack, level, hovertext, showCategory);
 
     uint64_t emc = EMCUtils::calculateItemEMC(
         EMCRepository::getItemEMC(ItemID::fromStack(stack)).emc,
@@ -174,14 +152,7 @@ void Item_appendFormattedHovertext(const Item* self, const ItemStackBase& stack,
 }
 
 void Recipes_init(Recipes* self, ResourcePackManager& rpm, ExternalRecipeStore& ers, const BaseGameVersion& bgv, const Experiments& exp) {
-    _Recipes_init.thiscall<
-        void,
-		Recipes*,
-		ResourcePackManager&,
-		ExternalRecipeStore&,
-		const BaseGameVersion&,
-		const Experiments&
-    >(self, rpm, ers, bgv, exp);
+    _Recipes_init(self, rpm, ers, bgv, exp);
     Log::Info("Mapping EMC values...");
 	ee2::emc::EMCRepository::init(*self);
 }
@@ -190,23 +161,11 @@ std::shared_ptr<BlockActor> BlockActorFactory_createBlockEntity(BlockActorType t
     if (type == CustomBlockActorType::AlchemicalChest) {
 		return std::make_shared<AlchemicalChestBlockActor>(pos);
     }
-    return _BlockActorFactory_createBlockEntity.call<
-        std::shared_ptr<BlockActor>,
-        BlockActorType,
-        const BlockPos&,
-		const BlockLegacy&
-    >(type, pos, block);
-
+    return _BlockActorFactory_createBlockEntity(type, pos, block);
 }
 
 void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, ItemRegistryRef registry, const BaseGameVersion& version, const Experiments& experiments) {
-    _VanillaItems__addItemsCategory.call<
-        void,
-        CreativeItemRegistry*,
-        ItemRegistryRef,
-		const BaseGameVersion&,
-		const Experiments&
-	>(creativeItemRegistry, registry, version, experiments);
+    _VanillaItems__addItemsCategory(creativeItemRegistry, registry, version, experiments);
     Item::addCreativeItem(registry, *Blocks::sBlocks["ee2:alchemical_chest"]->mDefaultState);
 }
 
@@ -220,14 +179,11 @@ static const ChargeableItem* getChargeableItem(const ItemStackBase& stack) {
 };
 
 void ContainerScreenController__registerBindings(ContainerScreenController* self) {
-    _ContainerScreenController__registerBindings.thiscall(self);
+    _ContainerScreenController__registerBindings(self);
     self->bindBoolForAnyCollection("#item_charge_visible", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
         const ChargeableItem* chargeableItem = getChargeableItem(stack);
         if (!chargeableItem)
-            return false;
-        short currentCharge = chargeableItem->getCharge(stack);
-        if (currentCharge == chargeableItem->mMaxCharge)
             return false;
         return true;
     }, [&](const std::string&, int) { 
@@ -239,9 +195,6 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
         const ChargeableItem* chargeableItem = getChargeableItem(stack);
         if (!chargeableItem)
-            return false;
-        short currentCharge = chargeableItem->getCharge(stack);
-        if (currentCharge == chargeableItem->mMaxCharge)
             return false;
         return true;
     }, [] {
@@ -310,7 +263,7 @@ bool HudScreenController_bind(
 		const ChargeableItem* chargeableItem = getChargeableItem(stack);
 		bool value = false;
         if (chargeableItem)
-            value = chargeableItem->getCharge(stack) < chargeableItem->mMaxCharge;
+            value = true;
         bag.set<bool>(bindingNameOverride, value);
         return true;
     }
@@ -333,24 +286,14 @@ bool HudScreenController_bind(
 		return true;
     }
 
-    return _HudScreenController_bind.thiscall<
-        bool,
-		HudScreenController*,
-		const std::string&,
-		uint32_t,
-		int,
-		const std::string&,
-		uint32_t,
-		const std::string&,
-		UIPropertyBag&
-	>(
+    return _HudScreenController_bind(
         self, 
         collectionName, 
         collectionNameHash, 
         collectionIndex, 
         bindingName, 
         bindingNameHash, 
-        bindingNameOverride, 
+        bindingNameOverride,
         bag
     );
 }

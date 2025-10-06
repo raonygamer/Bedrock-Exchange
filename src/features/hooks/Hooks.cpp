@@ -45,6 +45,7 @@ SafetyHookInline _BlockActorFactory_createBlockEntity;
 SafetyHookInline _VanillaItems__addItemsCategory;
 SafetyHookInline _ContainerScreenController__registerBindings;
 SafetyHookInline _HudScreenController_$constructor;
+SafetyHookInline _HudScreenController_bind;
 
 void Player_readAdditionalSaveData(Player* self, const CompoundTag& tag, DataLoadHelper& helper) {
     _Player_readAdditionalSaveData.thiscall<
@@ -133,33 +134,6 @@ protected:
     std::string do_grouping() const override { return "\3"; }
 };
 
-std::string stringify(const CompoundTag& tag, int indent) {
-    std::string result = "{\n";
-    std::string indentStr(indent, ' ');
-
-    for (const auto& [key, value] : tag.mTags) {
-        result += indentStr + key + ": ";
-        if (auto* subCompound = value.get<CompoundTag>()) {
-            result += stringify(*subCompound, indent + 2);
-        }
-        else if (auto* listTag = value.get<ListTag>()) {
-            result += "[\n";
-            std::string listIndentStr(indent + 2, ' ');
-            for (const auto& item : listTag->mList) {
-                result += listIndentStr + item->toString() + "\n";
-            }
-            result += indentStr + "]\n";
-		}
-        else {
-            result += value.get()->toString();
-            result += "\n";
-        }
-    }
-
-    result += std::string(indent - 2, ' ') + "}\n";
-    return result;
-}
-
 void Item_appendFormattedHovertext(const Item* self, const ItemStackBase& stack, Level& level, std::string& hovertext, bool showCategory)
 {
     _Item_appendFormattedHovertext.thiscall<
@@ -236,14 +210,6 @@ void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, 
     Item::addCreativeItem(registry, *Blocks::sBlocks["ee2:alchemical_chest"]->mDefaultState);
 }
 
-bool ContainerScreenController_Lambdas_ShouldShowItemStackDurability_DoCall(
-    ContainerScreenController::Lambdas::ShouldShowItemStackDurability* self,
-	const std::string& collection,
-    int index
-) {
-    return true;
-}
-
 static const ChargeableItem* getChargeableItem(const ItemStackBase& stack) {
     if (stack.isNull())
         return nullptr;
@@ -255,8 +221,6 @@ static const ChargeableItem* getChargeableItem(const ItemStackBase& stack) {
 
 void ContainerScreenController__registerBindings(ContainerScreenController* self) {
     _ContainerScreenController__registerBindings.thiscall(self);
-    
-
     self->bindBoolForAnyCollection("#item_charge_visible", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
         const ChargeableItem* chargeableItem = getChargeableItem(stack);
@@ -327,7 +291,6 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     });
 }
 
-SafetyHookInline _HudScreenController_bind;
 bool HudScreenController_bind(
     HudScreenController* self, 
     const std::string& collectionName, 

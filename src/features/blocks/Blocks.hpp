@@ -5,7 +5,12 @@
 
 class Blocks {
 public:
-	static std::unordered_map<std::string, WeakPtr<BlockLegacy>> sBlocks;
+	static WeakPtr<BlockLegacy> AlchemicalCoalBlock;
+	static WeakPtr<BlockLegacy>	MobiusFuelBlock;
+	static WeakPtr<BlockLegacy> AeternalisFuelBlock;
+	static WeakPtr<BlockLegacy> AlchemicalChestBlock;
+	static WeakPtr<BlockLegacy> DarkMatterBlock;
+	static WeakPtr<BlockLegacy> RedMatterBlock;
 
 	static void RegisterAllBlocks(RegisterBlocksEvent& event, AmethystContext& ctx);
 	static void InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext& ctx);

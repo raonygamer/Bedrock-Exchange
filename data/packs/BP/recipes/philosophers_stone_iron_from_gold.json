@@ -1,0 +1,33 @@
+{
+	"format_version": "1.12",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ee2:philosophers_stone_iron_from_gold"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"pattern": [
+			"#X"
+		],
+		"assume_symmetry": true,
+		"key": {
+			"#": {
+				"item": "ee2:philosophers_stone"
+			},
+			"X": {
+				"item": "minecraft:gold_ingot"
+			}
+		},
+		"result": [
+            {
+                "item": "minecraft:iron_ingot",
+                "count": 8
+            },
+            {
+				"item": "ee2:philosophers_stone",
+                "count": 1
+			}
+        ]
+	}
+}

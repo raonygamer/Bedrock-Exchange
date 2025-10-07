@@ -1,0 +1,31 @@
+{
+	"format_version": "1.12",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ee2:red_matter"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"pattern": [
+			"AAA",
+			"BBB",
+			"AAA"
+		],
+		"assume_symmetry": true,
+		"key": {
+			"A": {
+				"item": "ee2:aeternalis_fuel"
+			},
+			"B": {
+				"item": "ee2:dark_matter"
+			}
+		},
+		"result": [
+            {
+                "item": "ee2:red_matter",
+                "count": 1
+            }
+        ]
+	}
+}

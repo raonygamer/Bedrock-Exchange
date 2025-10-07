@@ -23,9 +23,31 @@
             ]
         },
         "ee2:philosophers_stone": {
-            "textures": [
-                "textures/items/philosophers_stone"
-            ]
+            "textures": "textures/items/philosophers_stone"
+        },
+        "ee2:alchemical_coal": {
+            "textures": "textures/items/fuels/alchemical_coal"
+        },
+        "ee2:mobius_fuel": {
+            "textures": "textures/items/fuels/mobius"
+        },
+        "ee2:aeternalis_fuel": {
+            "textures": "textures/items/fuels/aeternalis"
+        },
+        "ee2:low_covalence_dust": {
+            "textures": "textures/items/covalence_dust/low"
+        },
+        "ee2:medium_covalence_dust": {
+            "textures": "textures/items/covalence_dust/medium"
+        },
+        "ee2:high_covalence_dust": {
+            "textures": "textures/items/covalence_dust/high"
+        },
+        "ee2:dark_matter": {
+            "textures": "textures/items/matter/dark"
+        },
+        "ee2:red_matter": {
+            "textures": "textures/items/matter/red"
         }
     }
 }

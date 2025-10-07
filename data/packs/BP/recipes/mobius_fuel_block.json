@@ -1,0 +1,28 @@
+{
+	"format_version": "1.12",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ee2:mobius_fuel_block"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"pattern": [
+			"AAA",
+			"AAA",
+			"AAA"
+		],
+		"assume_symmetry": true,
+		"key": {
+			"A": {
+				"item": "ee2:mobius_fuel"
+			}
+		},
+		"result": [
+            {
+                "item": "ee2:mobius_fuel_block",
+                "count": 1
+            }
+        ]
+	}
+}

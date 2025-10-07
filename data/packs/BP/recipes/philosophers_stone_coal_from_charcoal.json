@@ -12,6 +12,7 @@
 			"XX",
 			"X "
 		],
+		"assume_symmetry": true,
 		"key": {
 			"#": {
 				"item": "ee2:philosophers_stone"

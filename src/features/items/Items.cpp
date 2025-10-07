@@ -13,6 +13,14 @@
 ItemRegistry* Items::ItemRegistry = nullptr;
 std::unordered_map<std::string, WeakPtr<AlchemicalBagItem>> Items::AlchemicalBags = {};
 WeakPtr<ChargeableItem> Items::PhilosophersStone = nullptr;
+WeakPtr<Item> Items::AlchemicalCoal = nullptr;
+WeakPtr<Item> Items::MobiusFuel = nullptr;
+WeakPtr<Item> Items::AeternalisFuel = nullptr;
+WeakPtr<Item> Items::LowCovalenceDust = nullptr;
+WeakPtr<Item> Items::MediumCovalenceDust = nullptr;
+WeakPtr<Item> Items::HighCovalenceDust = nullptr;
+WeakPtr<Item> Items::DarkMatter = nullptr;
+WeakPtr<Item> Items::RedMatter = nullptr;
 
 void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 {
@@ -29,15 +37,127 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 		auto item = event.itemRegistry.registerItemShared<ChargeableItem>("ee2:philosophers_stone", ++event.itemRegistry.mMaxItemID, 5, 5);
 		item->setIconInfo("ee2:philosophers_stone", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
-		item->mCraftingRemainingItem = item.get();
 		PhilosophersStone = item;
 	}
 
-	for (const auto& [name, block] : Blocks::sBlocks) {
-		if (block.isNull()) 
-			continue;
-		Log::Info("Registering block item '{}'", name);
-		auto item = event.itemRegistry.registerItemShared<BlockItem>(name, block->getBlockItemId(), HashedString::EMPTY);
+	// Alchemical Coal
+	{
+		auto item = event.itemRegistry.registerItemShared<Item>("ee2:alchemical_coal", ++event.itemRegistry.mMaxItemID);
+		item->setIconInfo("ee2:alchemical_coal", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
+		AeternalisFuel = item;
+	}
+
+	// Mobius Fuel
+	{
+		auto item = event.itemRegistry.registerItemShared<Item>("ee2:mobius_fuel", ++event.itemRegistry.mMaxItemID);
+		item->setIconInfo("ee2:mobius_fuel", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		AeternalisFuel = item;
+	}
+
+	// Aeternalis Fuel
+	{
+		auto item = event.itemRegistry.registerItemShared<Item>("ee2:aeternalis_fuel", ++event.itemRegistry.mMaxItemID);
+		item->setIconInfo("ee2:aeternalis_fuel", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		AeternalisFuel = item;
+	}
+
+	// Low Covalence Dust
+	{
+		auto item = event.itemRegistry.registerItemShared<Item>("ee2:low_covalence_dust", ++event.itemRegistry.mMaxItemID);
+		item->setIconInfo("ee2:low_covalence_dust", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		LowCovalenceDust = item;
+	}
+
+	// Medium Covalence Dust
+	{
+		auto item = event.itemRegistry.registerItemShared<Item>("ee2:medium_covalence_dust", ++event.itemRegistry.mMaxItemID);
+		item->setIconInfo("ee2:medium_covalence_dust", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		MediumCovalenceDust = item;
+	}
+
+	// High Covalence Dust
+	{
+		auto item = event.itemRegistry.registerItemShared<Item>("ee2:high_covalence_dust", ++event.itemRegistry.mMaxItemID);
+		item->setIconInfo("ee2:high_covalence_dust", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		HighCovalenceDust = item;
+	}
+
+	// Dark Matter
+	{
+		auto item = event.itemRegistry.registerItemShared<Item>("ee2:dark_matter", ++event.itemRegistry.mMaxItemID);
+		item->setIconInfo("ee2:dark_matter", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		DarkMatter = item;
+	}
+
+	// Red Matter
+	{
+		auto item = event.itemRegistry.registerItemShared<Item>("ee2:red_matter", ++event.itemRegistry.mMaxItemID);
+		item->setIconInfo("ee2:red_matter", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		RedMatter = item;
+	}
+
+	// Blocks
+	{
+		// Alchemical Coal Block
+		{
+			event.itemRegistry.registerItemShared<BlockItem>(
+				Blocks::AlchemicalCoalBlock->mNameInfo.mFullName.getString(),
+				Blocks::AlchemicalCoalBlock->getBlockItemId(),
+				HashedString::EMPTY
+			)->mCreativeCategory = CreativeItemCategory::Items;
+		}
+
+		// Mobius Fuel Block
+		{
+			event.itemRegistry.registerItemShared<BlockItem>(
+				Blocks::MobiusFuelBlock->mNameInfo.mFullName.getString(),
+				Blocks::MobiusFuelBlock->getBlockItemId(),
+				HashedString::EMPTY
+			)->mCreativeCategory = CreativeItemCategory::Items;
+		}
+
+		// Aeternalis Fuel Block
+		{
+			event.itemRegistry.registerItemShared<BlockItem>(
+				Blocks::AeternalisFuelBlock->mNameInfo.mFullName.getString(),
+				Blocks::AeternalisFuelBlock->getBlockItemId(),
+				HashedString::EMPTY
+			)->mCreativeCategory = CreativeItemCategory::Items;
+		}
+
+		// Alchemical Chest Block
+		{
+			event.itemRegistry.registerItemShared<BlockItem>(
+				Blocks::AlchemicalChestBlock->mNameInfo.mFullName.getString(),
+				Blocks::AlchemicalChestBlock->getBlockItemId(),
+				HashedString::EMPTY
+			)->mCreativeCategory = CreativeItemCategory::Items;
+		}
+
+		// Dark Matter Block
+		{
+			event.itemRegistry.registerItemShared<BlockItem>(
+				Blocks::DarkMatterBlock->mNameInfo.mFullName.getString(),
+				Blocks::DarkMatterBlock->getBlockItemId(),
+				HashedString::EMPTY
+			)->mCreativeCategory = CreativeItemCategory::Items;
+		}
+
+		// Red Matter Block
+		{
+			event.itemRegistry.registerItemShared<BlockItem>(
+				Blocks::RedMatterBlock->mNameInfo.mFullName.getString(),
+				Blocks::RedMatterBlock->getBlockItemId(),
+				HashedString::EMPTY
+			)->mCreativeCategory = CreativeItemCategory::Items;
+		}
 	}
 }

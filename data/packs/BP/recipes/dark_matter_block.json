@@ -1,0 +1,27 @@
+{
+	"format_version": "1.12",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ee2:dark_matter_block"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"pattern": [
+			"AA",
+			"AA"
+		],
+		"assume_symmetry": true,
+		"key": {
+			"A": {
+				"item": "ee2:dark_matter"
+			}
+		},
+		"result": [
+            {
+                "item": "ee2:dark_matter_block",
+                "count": 1
+            }
+        ]
+	}
+}

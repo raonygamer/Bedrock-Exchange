@@ -1,0 +1,31 @@
+{
+	"format_version": "1.12",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ee2:dark_matter"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"pattern": [
+			"AAA",
+			"ABA",
+			"AAA"
+		],
+		"assume_symmetry": true,
+		"key": {
+			"A": {
+				"item": "ee2:aeternalis_fuel"
+			},
+			"B": {
+				"item": "minecraft:diamond_block"
+			}
+		},
+		"result": [
+            {
+                "item": "ee2:dark_matter",
+                "count": 1
+            }
+        ]
+	}
+}

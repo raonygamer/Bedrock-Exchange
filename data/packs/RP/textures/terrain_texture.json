@@ -4,20 +4,29 @@
   "padding": 8,
   "num_mip_levels": 4,
   "texture_data": {
-    "alchemical_chest_inventory_top": {
-      "textures": [
-        "textures/blocks/alchemical_chest_top"
-      ]
+    "ee2:alchemical_chest_inventory_top": {
+      "textures": "textures/blocks/alchemical_chest_top"
     },
-    "alchemical_chest_inventory_side": {
-      "textures": [
-        "textures/blocks/alchemical_chest_side"
-      ]
+    "ee2:alchemical_chest_inventory_side": {
+      "textures": "textures/blocks/alchemical_chest_side"
     },
-    "alchemical_chest_inventory_front": {
-      "textures": [
-        "textures/blocks/alchemical_chest_front"
-      ]
+    "ee2:alchemical_chest_inventory_front": {
+      "textures": "textures/blocks/alchemical_chest_front"
+    },
+    "ee2:alchemical_coal_block": {
+      "textures": "textures/blocks/alchemical_coal_block"
+    },
+    "ee2:mobius_fuel_block": {
+      "textures": "textures/blocks/mobius_fuel_block"
+    },
+    "ee2:aeternalis_fuel_block": {
+      "textures": "textures/blocks/aeternalis_fuel_block"
+    },
+    "ee2:dark_matter_block": {
+      "textures": "textures/blocks/dark_matter_block"
+    },
+    "ee2:red_matter_block": {
+      "textures": "textures/blocks/red_matter_block"
     }
   }
 }

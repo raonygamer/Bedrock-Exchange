@@ -1,0 +1,29 @@
+{
+	"format_version": "1.12",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ee2:medium_covalence_dust"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"pattern": [
+			"#X"
+		],
+		"assume_symmetry": true,
+		"key": {
+			"#": {
+				"item": "minecraft:iron_ingot"
+			},
+			"X": {
+				"item": "minecraft:redstone"
+			}
+		},
+		"result": [
+            {
+                "item": "ee2:medium_covalence_dust",
+                "count": 40
+            }
+        ]
+	}
+}

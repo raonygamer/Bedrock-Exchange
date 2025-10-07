@@ -166,7 +166,12 @@ std::shared_ptr<BlockActor> BlockActorFactory_createBlockEntity(BlockActorType t
 
 void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, ItemRegistryRef registry, const BaseGameVersion& version, const Experiments& experiments) {
     _VanillaItems__addItemsCategory(creativeItemRegistry, registry, version, experiments);
-    Item::addCreativeItem(registry, *Blocks::sBlocks["ee2:alchemical_chest"]->mDefaultState);
+    Item::addCreativeItem(registry, *Blocks::AlchemicalCoalBlock->mDefaultState);
+    Item::addCreativeItem(registry, *Blocks::MobiusFuelBlock->mDefaultState);
+    Item::addCreativeItem(registry, *Blocks::AeternalisFuelBlock->mDefaultState);
+    Item::addCreativeItem(registry, *Blocks::AlchemicalChestBlock->mDefaultState);
+    Item::addCreativeItem(registry, *Blocks::DarkMatterBlock->mDefaultState);
+    Item::addCreativeItem(registry, *Blocks::RedMatterBlock->mDefaultState);
 }
 
 static const ChargeableItem* getChargeableItem(const ItemStackBase& stack) {

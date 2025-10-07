@@ -1,0 +1,46 @@
+{
+	"format_version": "1.12",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ee2:alchemical_chest"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"pattern": [
+			"ABC",
+			"DED",
+			"FGF"
+		],
+		"assume_symmetry": true,
+		"key": {
+			"A": {
+				"item": "ee2:low_covalence_dust"
+			},
+			"B": {
+				"item": "ee2:medium_covalence_dust"
+			},
+			"C": {
+				"item": "ee2:high_covalence_dust"
+			},
+			"D": {
+				"item": "minecraft:stone"
+			},
+			"E": {
+				"item": "minecraft:diamond"
+			},
+			"F": {
+				"item": "minecraft:iron_ingot"
+			},
+			"G": {
+				"item": "minecraft:chest"
+			}
+		},
+		"result": [
+            {
+                "item": "ee2:alchemical_chest",
+                "count": 1
+            }
+        ]
+	}
+}

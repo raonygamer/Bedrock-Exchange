@@ -10,6 +10,7 @@ namespace ee2::emc {
 	protected:
 		Recipes& mRecipes;
 		std::vector<std::pair<ItemID, uint64_t>> mEMCValues;
+		std::vector<ItemID> mIgnoredIngredientEMCs;
 	public:
 		RecipeEMCMapper(Recipes& recipes);
 		void init() override;
@@ -19,6 +20,6 @@ namespace ee2::emc {
 		std::string getMapperName() override;
 		void setEMC(const ItemID& identifier, uint64_t emc) override;
 
-		uint64_t resolveIngredientEMC(const RecipeIngredient& ingredient);
+		std::optional<uint64_t> resolveIngredientEMC(const RecipeIngredient& ingredient, std::vector<const ItemInstance*> resultItems = {});
 	};
 } // namespace ee2::emc

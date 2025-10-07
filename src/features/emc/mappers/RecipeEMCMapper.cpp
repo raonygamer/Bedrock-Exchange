@@ -1,5 +1,7 @@
 #include "features/emc/mappers/RecipeEMCMapper.hpp"
 #include "features/emc/EMCRepository.hpp"
+#include "features/emc/EMCUtils.hpp"
+#include "amethyst/runtime/ModContext.hpp"
 
 namespace ee2::emc{
 	RecipeEMCMapper::RecipeEMCMapper(Recipes& recipes) :
@@ -26,55 +28,66 @@ namespace ee2::emc{
 			// Loop through all recipes
 			for (const auto& [id, recipe] : recipes) {
 				// Loop through all result items of the recipe
+				std::vector<const ItemInstance*> allResultItems = {};
 				for (const auto& resultItem : recipe->getResultItem()) {
 					if (resultItem.isNull() || resultItem.mCount == 0)
 						continue;
+					allResultItems.push_back(&resultItem);
+				}
 
-					// Get the ItemID of the result item
-					auto resultId = ItemID::fromStack(resultItem);
+				if (recipe->getResultItem().empty())
+					continue;
 
-					uint64_t accumulatedEMC = 0;
-					bool isComplete = true;
+				// Get the first result item (we only care about the main one for EMC mapping)
+				const auto& resultItem = recipe->getResultItem()[0];
 
-					// Loop through all ingredients of the recipe
-					recipe->forEachIngredient([&](size_t x, size_t y, const RecipeIngredient& ingredient) {
-						// If the ingredient is empty, skip it
-						if (ingredient.mImpl == nullptr || ingredient.mStackSize == 0)
-							return true;
+				if (resultItem.isNull() || resultItem.mCount == 0)
+					continue;
 
-						// Resolve the EMC value of the ingredient
-						uint64_t ingredientEMC = resolveIngredientEMC(ingredient);
+				// Get the ItemID of the result item
+				auto resultId = ItemID::fromStack(resultItem);
 
-						// If we found a valid EMC value, add it to the total
-						if (ingredientEMC > 0) {
-							accumulatedEMC += ingredientEMC;
-							return true;
-						}
+				uint64_t accumulatedEMC = 0;
+				bool isComplete = true;
 
-						// If we didn't find a valid EMC value, we can't calculate this recipe
-						isComplete = false;
-						return false;
-					});
+				// Loop through all ingredients of the recipe
+				recipe->forEachIngredient([&](size_t x, size_t y, const RecipeIngredient& ingredient) {
+					// If the ingredient is empty, skip it
+					if (ingredient.mImpl == nullptr || ingredient.mStackSize == 0)
+						return true;
 
-					// Divide the total EMC by the result item count
-					const uint64_t finalEMC = std::max(1ull, accumulatedEMC / resultItem.mCount);
+					// Resolve the EMC value of the ingredient
+					std::optional<uint64_t> ingredientEMC = resolveIngredientEMC(ingredient, allResultItems);
 
-					// Get the existing EMC value for the result item
-					uint64_t existingEMC = getEMC(resultId).emc;
-
-					// If there is no existing EMC value, set it to max
-					bool hasExisting = existingEMC != 0;
-					if (existingEMC == 0)
-						existingEMC = UINT64_MAX;
-
-					// If we could calculate the EMC value and it's lower than the existing one, set it
-					if (isComplete && finalEMC < existingEMC) {
-						// Set the new EMC value
-						setEMC(resultId, finalEMC);
-
-						// Mark that we made progress and should loop again
-						progress = true;
+					// If we found a valid EMC value, add it to the total
+					if (ingredientEMC.has_value()) {
+						accumulatedEMC += ingredientEMC.value();
+						return true;
 					}
+
+					// If we didn't find a valid EMC value, we can't calculate this recipe
+					isComplete = false;
+					return false;
+				});
+
+				// Divide the total EMC by the result item count
+				const uint64_t finalEMC = std::max(1ull, accumulatedEMC / resultItem.mCount);
+
+				// Get the existing EMC value for the result item
+				uint64_t existingEMC = getEMC(resultId).emc;
+
+				// If there is no existing EMC value, set it to max
+				bool hasExisting = existingEMC != 0;
+				if (existingEMC == 0)
+					existingEMC = UINT64_MAX;
+
+				// If we could calculate the EMC value and it's lower than the existing one, set it
+				if (isComplete && finalEMC < existingEMC) {
+					// Set the new EMC value
+					setEMC(resultId, finalEMC);
+
+					// Mark that we made progress and should loop again
+					progress = true;
 				}
 			}
 		}
@@ -123,9 +136,10 @@ namespace ee2::emc{
 		}
 	}
 
-	uint64_t RecipeEMCMapper::resolveIngredientEMC(const RecipeIngredient& ingredient) {
+	std::optional<uint64_t> RecipeEMCMapper::resolveIngredientEMC(const RecipeIngredient& ingredient, std::vector<const ItemInstance*> resultItems) {
+		auto& level = *Amethyst::GetLevel();
 		if (!ingredient.mImpl)
-			return 0;
+			return std::nullopt;
 		const auto& desc = *ingredient.mImpl;
 		const auto ingredientCount = ingredient.mStackSize;
 
@@ -133,26 +147,58 @@ namespace ee2::emc{
 
 		// Get all item variants of that ingredient slot
 		// And select the lowest EMC value
+		bool lastIgnored = false;
 		const auto items = desc.getAllItems();
 		for (const auto& item : items) {
+			lastIgnored = false;
+			auto itemId = ItemID::fromEntry(item);
+
+			// If the item is ignored skip it
+			for (const auto& ignored : mIgnoredIngredientEMCs) {
+				if (ignored.equals(itemId)) {
+					lastIgnored = true;
+					continue;
+				}
+			}
+
 			// Try getting the EMC value for that item from the EMC repository
 			// No caching so we always get the latest value since we are in init phase
 			auto emcResult = EMCRepository::getItemEMC(
-				ItemID::fromEntry(item),
+				itemId,
 				true
 			);
 
 			// If we found a valid EMC value and it's lower than the last one, set it
 			if (emcResult.emc != 0 && emcResult.emc < lastEMC) {
 				lastEMC = emcResult.emc;
+
+				// If the item is also a result item of the recipe, we subtract it's own EMC value
+				for (const auto& resultItem : resultItems) {
+					auto resultItemId = ItemID::fromStack(*resultItem);
+					if (resultItemId.equals(itemId)) {
+						uint64_t resultEMC = EMCRepository::getItemEMC(resultItemId, true);
+						if (resultEMC == 0)
+							continue;
+						resultEMC = EMCUtils::calculateItemEMC(resultEMC, *resultItem, level);
+						resultEMC = EMCUtils::calculateStackEMC(resultEMC, *resultItem);
+						lastEMC -= resultEMC;
+					}
+				}
+
 				if (lastEMC == 1)
 					break; // Can't get lower than 1, stop searching
 			}
 		}
 
+		lastEMC = std::max(0ull, lastEMC);
+
+		// If the last item was ignored, we return 0 EMC
+		if (lastIgnored)
+			return 0;
+
 		// If we didn't find a valid EMC value, return 0
 		if (lastEMC == UINT64_MAX)
-			return 0;
+			return std::nullopt;
 
 		// If we found a valid EMC value return it multiplied by the ingredient count
 		return lastEMC * ingredientCount;

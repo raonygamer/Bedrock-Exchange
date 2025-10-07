@@ -14,6 +14,25 @@ item.ee2:purple_alchemical_bag.name=Alchemical Bag (Purple)
 item.ee2:red_alchemical_bag.name=Alchemical Bag (Red)
 item.ee2:white_alchemical_bag.name=Alchemical Bag (White)
 item.ee2:yellow_alchemical_bag.name=Alchemical Bag (Yellow)
+
 item.ee2:philosophers_stone.name=Philosopher's Stone
+
+item.ee2:alchemical_coal.name=Alchemical Coal
+item.ee2:mobius_fuel.name=Mobius Fuel
+item.ee2:aeternalis_fuel.name=§bAeternalis Fuel§r
+
+item.ee2:low_covalence_dust.name=Low Covalence Dust
+item.ee2:medium_covalence_dust.name=Medium Covalence Dust
+item.ee2:high_covalence_dust.name=High Covalence Dust
+
+item.ee2:dark_matter.name=Dark Matter
+item.ee2:red_matter.name=Red Matter
+
+tile.ee2:alchemical_coal_block.name=Alchemical Coal Block
+tile.ee2:mobius_fuel_block.name=Mobius Fuel Block
+tile.ee2:aeternalis_fuel_block.name=Aeternalis Fuel Block
+tile.ee2:alchemical_chest.name=Alchemical Chest
+tile.ee2:dark_matter_block.name=Dark Matter Block
+tile.ee2:red_matter_block.name=Red Matter Block
 
 itemGroup.ee2:alchemical_bags.name=Alchemical Bags

@@ -36,6 +36,7 @@ namespace ee2::emc {
 
 		mTagEMCValues = {
 			{ "minecraft:logs", 32 },
+			{ "minecraft:wool", 48 },
 		};
 
 		Log::Info("[{}] mapped {} EMC values for default tags", getMapperName(), mTagEMCValues.size());

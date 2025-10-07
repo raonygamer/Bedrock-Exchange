@@ -1,0 +1,33 @@
+{
+	"format_version": "1.12",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ee2:philosophers_stone_charcoal_from_coal"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"pattern": [
+			"#X"
+		],
+		"assume_symmetry": true,
+		"key": {
+			"#": {
+				"item": "ee2:philosophers_stone"
+			},
+			"X": {
+				"item": "minecraft:coal"
+			}
+		},
+		"result": [
+            {
+                "item": "minecraft:charcoal",
+                "count": 4
+            },
+            {
+				"item": "ee2:philosophers_stone",
+                "count": 1
+			}
+        ]
+	}
+}

@@ -159,5 +159,16 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 				HashedString::EMPTY
 			)->mCreativeCategory = CreativeItemCategory::Items;
 		}
+
+		// Dark Matter Furnace Block
+		{
+			auto item = event.itemRegistry.registerItemShared<BlockItem>(
+				Blocks::DarkMatterFurnaceBlock->mNameInfo.mFullName.getString(),
+				Blocks::DarkMatterFurnaceBlock->getBlockItemId(),
+				HashedString::EMPTY
+			);
+			item->mCreativeCategory = CreativeItemCategory::Items;
+			item->setIsHiddenInCommands(ItemCommandVisibility::Visible);
+		}
 	}
 }

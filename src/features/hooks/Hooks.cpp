@@ -98,7 +98,7 @@ Container* ContainerWeakRef_tryGetActorContainer(Actor& actor, ActorContainerTyp
 }
 
 Container* ContainerValidatorFactory_getBackingContainer(ContainerEnumName name, const ContainerScreenContext& ctx) {
-    if (ctx.mScreenContainerType == ContainerType::CONTAINER && name == ContainerEnumName::LevelEntityContainer)
+    if (ctx.mScreenContainerType == ContainerType::CONTAINER && name == ContainerEnumName::ContainerItems)
     {
         if (ctx.mOwner.index() == 1) {
             auto& actorId = std::get<1>(ctx.mOwner);
@@ -172,6 +172,7 @@ void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, 
     Item::addCreativeItem(registry, *Blocks::AlchemicalChestBlock->mDefaultState);
     Item::addCreativeItem(registry, *Blocks::DarkMatterBlock->mDefaultState);
     Item::addCreativeItem(registry, *Blocks::RedMatterBlock->mDefaultState);
+    Item::addCreativeItem(registry, *Blocks::DarkMatterFurnaceBlock->mDefaultState);
 }
 
 static const ChargeableItem* getChargeableItem(const ItemStackBase& stack) {
@@ -182,7 +183,7 @@ static const ChargeableItem* getChargeableItem(const ItemStackBase& stack) {
         return nullptr;
     return static_cast<const ChargeableItem*>(item);
 };
-
+#pragma optimize("", off)
 void ContainerScreenController__registerBindings(ContainerScreenController* self) {
     _ContainerScreenController__registerBindings(self);
     self->bindBoolForAnyCollection("#item_charge_visible", [self](const std::string& collection, int index) {
@@ -195,16 +196,18 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
         return true; 
     });
 
+
     self->bindBool("#selected_item_charge_visible", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
         const ChargeableItem* chargeableItem = getChargeableItem(stack);
-        if (!chargeableItem)
+        if (chargeableItem == nullptr)
             return false;
         return true;
     }, [] {
         return true;
     });
+
 
     self->bindFloatForAnyCollection("#item_charge_current_amount", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
@@ -248,6 +251,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
         return true;
     });
 }
+#pragma optimize("", on)
 
 bool HudScreenController_bind(
     HudScreenController* self, 

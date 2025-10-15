@@ -27,6 +27,38 @@
     },
     "ee2:red_matter_block": {
       "textures": "textures/blocks/red_matter_block"
+    },
+    "ee2:dm_furnace": {
+      "textures": [
+        "textures/blocks/matter_furnace/dm_off",
+        "textures/blocks/matter_furnace/dm_on",
+        "textures/blocks/dark_matter_block",
+        "textures/blocks/dark_matter_block"
+      ]
+    },
+    "ee2:dm_furnace_front": {
+      "textures": [
+        "textures/blocks/matter_furnace/dm_off",
+        "textures/blocks/matter_furnace/dm_on"
+      ]
+    },
+    "ee2:dm_furnace_front_off": {
+      "textures": "textures/blocks/matter_furnace/dm_off"
+    },
+    "ee2:dm_furnace_front_on": {
+      "textures": "textures/blocks/matter_furnace/dm_on"
+    },
+    "ee2:dm_furnace_top": {
+      "textures": [
+        "textures/blocks/dark_matter_block",
+        "textures/blocks/dark_matter_block"
+      ]
+    },
+    "ee2:dm_furnace_side": {
+      "textures": [
+        "textures/blocks/dark_matter_block",
+        "textures/blocks/dark_matter_block"
+      ]
     }
   }
 }

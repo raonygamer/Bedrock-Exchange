@@ -2,7 +2,7 @@
 #include "mc/src/common/world/containers/managers/models/LevelContainerManagerModel.hpp"
 
 AlchemicalBagContainerModel::AlchemicalBagContainerModel(ContainerEnumName name, int size, Player& player) :
-	LevelContainerModel(name, size, player, BlockActorType::Undefined, { 0, 0, 0 }, ContainerCategory::PlayerInventory)
+	LevelContainerModel(name, size, player, BlockActorType::Undefined, { 0, 0, 0 }, ContainerCategory::Default)
 {
 }
 

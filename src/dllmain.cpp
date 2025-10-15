@@ -178,9 +178,4 @@ ModFunction void Initialize(AmethystContext& ctx, const Amethyst::Mod& mod)
     // Register game hooks
 	CreateAllHooks(ctx);
     ctx.mNetworkManager->RegisterPacketType<UpdateItemChargePacket>(std::make_unique<UpdateItemChargePacketHandler>());
-
-    Log::Info("{:X}", (uint32_t)StringToNameId("#selected_item_durability_visible"));
-    Log::Info("{:X}", (uint32_t)StringToNameId("#item_durability_visible"));
-    Log::Info("{:X}", (uint32_t)StringToNameId("#item_durability_total_amount"));
-    Log::Info("{:X}", (uint32_t)StringToNameId("#item_durability_current_amount"));
 }

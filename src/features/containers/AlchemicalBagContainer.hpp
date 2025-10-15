@@ -24,9 +24,4 @@ public:
 	virtual void addAdditionalSaveData(CompoundTag& tag) {
 		
 	}
-
-	virtual void setItem(int slot, const ItemStack& item) override {
-		Log::Info("Setting item in alchemical bag slot {}: {}, client: {}", slot, item.toString(), mPlayer->isClientSide());
-		FillingContainer::setItem(slot, item);
-	}
 };

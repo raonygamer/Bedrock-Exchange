@@ -1,7 +1,11 @@
 #include "features/emc/mappers/RecipeEMCMapper.hpp"
 #include "features/emc/EMCRepository.hpp"
 #include "features/emc/EMCUtils.hpp"
+
+#include "mc/src/common/Minecraft.hpp"
+
 #include "amethyst/runtime/ModContext.hpp"
+
 
 namespace ee2::emc{
 	RecipeEMCMapper::RecipeEMCMapper(Recipes& recipes) :
@@ -137,7 +141,7 @@ namespace ee2::emc{
 	}
 
 	std::optional<uint64_t> RecipeEMCMapper::resolveIngredientEMC(const RecipeIngredient& ingredient, std::vector<const ItemInstance*> resultItems) {
-		auto& level = *Amethyst::GetLevel();
+		auto& level = *Amethyst::GetServerCtx().mMinecraft->getLevel();
 		if (!ingredient.mImpl)
 			return std::nullopt;
 		const auto& desc = *ingredient.mImpl;

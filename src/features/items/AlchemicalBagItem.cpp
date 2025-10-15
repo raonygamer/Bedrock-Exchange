@@ -41,9 +41,9 @@ AlchemicalBagItem::AlchemicalBagItem(const std::string& name, short id, const st
 ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const
 {
 	bool isClientSide = player.isClientSide();
-	auto& clientInstance = *Amethyst::GetContext().mClientInstance;
+	auto& clientInstance = *Amethyst::GetClientCtx().mClientInstance;
 	auto& game = *clientInstance.mMinecraftGame;
-	auto& minecraft = *Amethyst::GetMinecraft();
+	auto& minecraft = *Amethyst::GetServerCtx().mMinecraft;
 	if (isClientSide) {
 		auto& factory = *clientInstance.mSceneFactory;
 		auto model = SceneCreationUtils::_createModel<ClientInstanceScreenModel>(
@@ -66,7 +66,7 @@ ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const
 		serverPlayer.setContainerManagerModel(containerManager);
 		ContainerOpenPacket packet(containerManager->getContainerId(), containerManager->getContainerType(), BlockPos(0, 0, 0), player.getUniqueID());
 		serverPlayer.sendNetworkPacket(packet);
-		InventoryContentPacket invPacket(containerManager->getContainerId(), containerManager->getItemCopies());
+		InventoryContentPacket invPacket = InventoryContentPacket::fromPlayerInventoryId(containerManager->getContainerId(), serverPlayer);
 		serverPlayer.sendNetworkPacket(invPacket);
 	}
 	

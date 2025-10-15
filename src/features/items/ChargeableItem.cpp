@@ -44,7 +44,7 @@ void ChargeableItem::charge(ItemStackBase& stack) const {
 		return;
 
 	setCharge(stack, nextCharge);
-	auto& ctx = Amethyst::GetContext();
+	auto& ctx = Amethyst::GetClientCtx();
 	ClientInstance& client = *ctx.mClientInstance;
 	auto& player = *client.getLocalPlayer();
 	float pitch = 1.0f + (0.05f * ((float)nextCharge / mMaxCharge));
@@ -58,7 +58,7 @@ void ChargeableItem::uncharge(ItemStackBase& stack) const {
 		return;
 	
 	setCharge(stack, nextCharge);
-	auto& ctx = Amethyst::GetContext();
+	auto& ctx = Amethyst::GetClientCtx();
 	ClientInstance& client = *ctx.mClientInstance;
 	auto& player = *client.getLocalPlayer();
 	float pitch = 1.0f + (0.05f * ((float)nextCharge / mMaxCharge));

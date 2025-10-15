@@ -15,10 +15,11 @@ WeakPtr<BlockLegacy> Blocks::AeternalisFuelBlock = nullptr;
 WeakPtr<BlockLegacy> Blocks::AlchemicalChestBlock = nullptr;
 WeakPtr<BlockLegacy> Blocks::DarkMatterBlock = nullptr;
 WeakPtr<BlockLegacy> Blocks::RedMatterBlock = nullptr;
+WeakPtr<DarkMatterFurnaceBlock> Blocks::DarkMatterFurnaceBlock = nullptr;
 
 void Blocks::RegisterAllBlocks(RegisterBlocksEvent& event, AmethystContext& ctx) {
 	auto& blockDefs = event.blockDefinitions;
-	
+
 	// Alchemical Coal Block
 	{
 		auto block = BlockTypeRegistry::registerBlock<BlockLegacy>("ee2:alchemical_coal_block", ++blockDefs.mLastBlockId, Material::getMaterial(MaterialType::Solid));
@@ -59,6 +60,13 @@ void Blocks::RegisterAllBlocks(RegisterBlocksEvent& event, AmethystContext& ctx)
 		auto block = BlockTypeRegistry::registerBlock<BlockLegacy>("ee2:red_matter_block", ++blockDefs.mLastBlockId, Material::getMaterial(MaterialType::Metal));
 		block->mCreativeCategory = CreativeItemCategory::Items;
 		RedMatterBlock = block;
+	}
+
+	// Dark Matter Furnace Block
+	{
+		auto block = BlockTypeRegistry::registerBlock<::DarkMatterFurnaceBlock>("ee2:dark_matter_furnace", ++blockDefs.mLastBlockId, false);
+		block->mCreativeCategory = CreativeItemCategory::Items;
+		DarkMatterFurnaceBlock = block;
 	}
 }
 
@@ -154,6 +162,22 @@ void Blocks::InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext
 				"ee2:red_matter_block",
 				"ee2:red_matter_block",
 				"ee2:red_matter_block"
+			);
+		}
+		graphics.setDefaultCarriedTextures();
+	}
+
+	// Dark Matter Furnace Block
+	{
+		BlockGraphics& graphics = *BlockGraphics::createBlockGraphics(DarkMatterFurnaceBlock->mNameInfo.mFullName, BlockShape::BLOCK);
+		if (graphics.mTextureItems.size() == 0) {
+			graphics.setTextureItem(
+				"ee2:dm_furnace_top",
+				"ee2:dm_furnace_top",
+				"ee2:dm_furnace_side",
+				"ee2:dm_furnace_front",
+				"ee2:dm_furnace_side",
+				"ee2:dm_furnace_side"
 			);
 		}
 		graphics.setDefaultCarriedTextures();

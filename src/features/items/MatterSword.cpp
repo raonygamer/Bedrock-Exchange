@@ -14,5 +14,6 @@ bool MatterSword::isDamageable() const {
 
 void MatterSword::setCharge(ItemStackBase& stack, short charge) {
 	ChargeableItemMixin::setCharge(stack, charge);
+	// TODO: figure out how to do that damage scale per stack instead of per item
 	mDamage = mBaseDamage + getCharge(stack);
 }

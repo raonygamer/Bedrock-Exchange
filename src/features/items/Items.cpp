@@ -1,7 +1,7 @@
 #include "features/items/Items.hpp"
 #include "features/blocks/Blocks.hpp"
 #include "features/items/AlchemicalBagItem.hpp"
-#include "features/items/ChargeableItem.hpp"
+#include "features/items/MatterSword.hpp"
 #include "features/ModGlobals.hpp"
 
 #include "mc/src-client/common/client/game/ClientInstance.hpp"
@@ -12,7 +12,7 @@
 
 ItemRegistry* Items::ItemRegistry = nullptr;
 std::unordered_map<std::string, WeakPtr<AlchemicalBagItem>> Items::AlchemicalBags = {};
-WeakPtr<ChargeableItem> Items::PhilosophersStone = nullptr;
+WeakPtr<BasicChargeableItem> Items::PhilosophersStone = nullptr;
 WeakPtr<Item> Items::AlchemicalCoal = nullptr;
 WeakPtr<Item> Items::MobiusFuel = nullptr;
 WeakPtr<Item> Items::AeternalisFuel = nullptr;
@@ -21,10 +21,15 @@ WeakPtr<Item> Items::MediumCovalenceDust = nullptr;
 WeakPtr<Item> Items::HighCovalenceDust = nullptr;
 WeakPtr<Item> Items::DarkMatter = nullptr;
 WeakPtr<Item> Items::RedMatter = nullptr;
+WeakPtr<Item> Items::DarkMatterSword = nullptr;
+WeakPtr<Item> Items::RedMatterSword = nullptr;
 
 void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 {
 	ItemRegistry = &event.itemRegistry;
+	auto* item = ItemRegistry->mNameToItemMap["minecraft:diamond_sword"].get();
+	Log::Info("Virtual Table for minecraft:diamond_sword Item at {:x}", GetVtable(item));
+
 	// Alchemical Bags
 	for (const std::string& color : ModGlobals::AlchemicalBagColors) {
 		std::string fullName = std::format("ee2:{}_alchemical_bag", color);
@@ -34,7 +39,7 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 
 	// Philosopher's Stone
 	{
-		auto item = event.itemRegistry.registerItemShared<ChargeableItem>("ee2:philosophers_stone", ++event.itemRegistry.mMaxItemID, 5, 5);
+		auto item = event.itemRegistry.registerItemShared<BasicChargeableItem>("ee2:philosophers_stone", ++event.itemRegistry.mMaxItemID, 4, 4);
 		item->setIconInfo("ee2:philosophers_stone", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		PhilosophersStone = item;
@@ -102,6 +107,36 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 		item->setIconInfo("ee2:red_matter", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		RedMatter = item;
+	}
+
+	// Dark Matter Sword
+	{
+		auto item = event.itemRegistry.registerItemShared<MatterSword>(
+			"ee2:dark_matter_sword",
+			++event.itemRegistry.mMaxItemID,
+			*ee2::Tiers::DARK_MATTER,
+			13,
+			2,
+			2
+		);
+		item->setIconInfo("ee2:dark_matter_sword", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		DarkMatterSword = item;
+	}
+
+	// Red Matter Sword
+	{
+		auto item = event.itemRegistry.registerItemShared<MatterSword>(
+			"ee2:red_matter_sword",
+			++event.itemRegistry.mMaxItemID,
+			*ee2::Tiers::RED_MATTER,
+			17,
+			3,
+			3
+		);
+		item->setIconInfo("ee2:red_matter_sword", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		RedMatterSword = item;
 	}
 
 	// Blocks

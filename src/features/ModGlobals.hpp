@@ -2,6 +2,7 @@
 #include "amethyst/runtime/ModContext.hpp"
 
 #include "mc/src/common/world/level/block/actor/BlockActorRendererId.hpp"
+#include "mc/src/common/world/containers/models/ContainerModel.hpp"
 
 #include <string>
 #include <vector>
@@ -25,6 +26,16 @@ public:
 		auto& ctx = Amethyst::GetContext();
 		ctx.mEnumAllocator->RegisterEnum<BlockActorType>(BlockActorType::Last);
 		AlchemicalChest = ctx.mEnumAllocator->GetNextValue<BlockActorType>();
+	}
+};
+
+class CustomActorContainerType {
+public:
+	inline static ActorContainerType AlchemicalBag;
+	inline static void Initialize() {
+		auto& ctx = Amethyst::GetContext();
+		ctx.mEnumAllocator->RegisterEnum<ActorContainerType>(ActorContainerType::PlayerEnderChest);
+		AlchemicalBag = ctx.mEnumAllocator->GetNextValue<ActorContainerType>();
 	}
 };
 
@@ -52,5 +63,6 @@ public:
 	static void InitializeEnums() {
 		CustomBlockActorRendererId::Initialize();
 		CustomBlockActorType::Initialize();
+		CustomActorContainerType::Initialize();
 	}
 };

@@ -28,6 +28,9 @@ item.ee2:high_covalence_dust.name=High Covalence Dust
 item.ee2:dark_matter.name=Dark Matter
 item.ee2:red_matter.name=Red Matter
 
+item.ee2:dark_matter_sword.name=Dark Matter Sword
+item.ee2:red_matter_sword.name=Red Matter Sword
+
 tile.ee2:alchemical_coal_block.name=Alchemical Coal Block
 tile.ee2:mobius_fuel_block.name=Mobius Fuel Block
 tile.ee2:aeternalis_fuel_block.name=Aeternalis Fuel Block

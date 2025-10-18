@@ -1,5 +1,7 @@
-#include "AlchemicalBagContainerModel.hpp"
+#include "features/containers/models/AlchemicalBagContainerModel.hpp"
+
 #include "mc/src/common/world/containers/managers/models/LevelContainerManagerModel.hpp"
+#include "features/ModGlobals.hpp"
 
 AlchemicalBagContainerModel::AlchemicalBagContainerModel(ContainerEnumName name, int size, Player& player) :
 	LevelContainerModel(name, size, player, BlockActorType::Undefined, { 0, 0, 0 }, ContainerCategory::Default)
@@ -23,7 +25,7 @@ ContainerWeakRef AlchemicalBagContainerModel::getContainerWeakRef()
 	auto* container = _getContainer();
 	return ContainerWeakRef{
 		mPlayer.getUniqueID(),
-		AlchemicalBagContainerType,
+		CustomActorContainerType::AlchemicalBag,
 		BlockPos{ 0, 0, 0 },
 		container->mContainerRuntimeId
 	};

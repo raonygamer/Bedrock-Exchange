@@ -48,6 +48,12 @@
         },
         "ee2:red_matter": {
             "textures": "textures/items/matter/red"
+        },
+        "ee2:dark_matter_sword": {
+            "textures": "textures/items/dm_tools/sword"
+        },
+        "ee2:red_matter_sword": {
+            "textures": "textures/items/rm_tools/sword"
         }
     }
 }

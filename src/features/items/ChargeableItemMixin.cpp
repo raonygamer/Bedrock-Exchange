@@ -1,27 +1,25 @@
-#include "features/items/ChargeableItem.hpp"
+#include "features/items/ChargeableItemMixin.hpp"
 #include "amethyst/runtime/ModContext.hpp"
 
 #include "mc/src/common/world/level/Level.hpp"
+#include "mc/src/common/world/actor/ActorDamageSource.hpp"
 #include "mc/src/common/world/actor/player/Player.hpp"
 #include "mc/src-client/common/client/player/LocalPlayer.hpp"
+#include "mc/src/common/world/entity/components/ActorUniqueIDComponent.hpp"
 
-ChargeableItem::ChargeableItem(const std::string& name, short id, short maxCharge, short steps, short startingCharge) :
-    Item(name, id),
+ChargeableItemMixin::ChargeableItemMixin(Item* item, short maxCharge, short steps, short startingCharge) :
+	mItem(item),
 	mMaxCharge(maxCharge),
 	mChargeSteps(steps),
 	mChargePerStep(maxCharge / steps),
 	mStartingCharge(startingCharge)
 {
-	setMaxStackSize(1);
-	mMaxDamage = maxCharge;
-	mTags.push_back({ "ee2:chargeable_item" });
+	item->setMaxStackSize(1);
+	item->mMaxDamage = maxCharge;
+	item->mTags.push_back({ "ee2:chargeable_item" });
 }
 
-bool ChargeableItem::isDamageable() const {
-	return false;
-}
-
-void ChargeableItem::setCharge(ItemStackBase& stack, short charge) const {
+void ChargeableItemMixin::setCharge(ItemStackBase& stack, short charge) {
 	if (!stack.mUserData)
 		stack.setUserData(std::make_unique<CompoundTag>());
 
@@ -31,15 +29,16 @@ void ChargeableItem::setCharge(ItemStackBase& stack, short charge) const {
 		stack.mUserData->getIntTag("Charge")->data = charge;
 }
 
-short ChargeableItem::getCharge(const ItemStackBase& stack) const {
+short ChargeableItemMixin::getCharge(const ItemStackBase& stack) const {
 	if (stack.mUserData && stack.mUserData->contains("Charge"))
 		return stack.mUserData->getInt("Charge");
 	return 0;
 }
 
-void ChargeableItem::charge(ItemStackBase& stack) const {
+void ChargeableItemMixin::charge(ItemStackBase& stack) {
 	short currentCharge = getCharge(stack);
 	short nextCharge = currentCharge + mChargePerStep;
+	Log::Info("Charging item '{}' from {} to {}", mItem->mFullName.getString(), currentCharge, nextCharge);
 	if (nextCharge > mMaxCharge)
 		return;
 
@@ -47,13 +46,15 @@ void ChargeableItem::charge(ItemStackBase& stack) const {
 	auto& ctx = Amethyst::GetClientCtx();
 	ClientInstance& client = *ctx.mClientInstance;
 	auto& player = *client.getLocalPlayer();
-	float pitch = 1.0f + (0.05f * ((float)nextCharge / mMaxCharge));
+	const float startPitch = 0.5f;
+	float pitch = startPitch + (((float)nextCharge / mMaxCharge) * (1.0f - startPitch));
 	player.getLevel()->playSound("ui.item.charge", *player.getPosition(), 1.0f, pitch);
 }
 
-void ChargeableItem::uncharge(ItemStackBase& stack) const {
+void ChargeableItemMixin::uncharge(ItemStackBase& stack) {
 	short currentCharge = getCharge(stack);
 	short nextCharge = currentCharge - mChargePerStep;
+	Log::Info("Uncharging item '{}' from {} to {}", mItem->mFullName.getString(), currentCharge, nextCharge);
 	if (nextCharge < 0)
 		return;
 	
@@ -61,6 +62,7 @@ void ChargeableItem::uncharge(ItemStackBase& stack) const {
 	auto& ctx = Amethyst::GetClientCtx();
 	ClientInstance& client = *ctx.mClientInstance;
 	auto& player = *client.getLocalPlayer();
-	float pitch = 1.0f + (0.05f * ((float)nextCharge / mMaxCharge));
+	const float startPitch = 0.7f;
+	float pitch = startPitch + (((float)currentCharge / mMaxCharge) * (1.0f - startPitch));
 	player.getLevel()->playSound("ui.item.uncharge", *player.getPosition(), 1.0f, pitch);
 }

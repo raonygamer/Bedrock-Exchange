@@ -1,0 +1,31 @@
+{
+	"format_version": "1.12",
+	"minecraft:recipe_shaped": {
+		"description": {
+			"identifier": "ee2:dark_matter_sword"
+		},
+		"tags": [
+			"crafting_table"
+		],
+		"pattern": [
+			"A",
+			"A",
+			"B"
+		],
+		"assume_symmetry": true,
+		"key": {
+			"A": {
+				"item": "ee2:dark_matter"
+			},
+			"B": {
+				"item": "minecraft:diamond"
+			}
+		},
+		"result": [
+            {
+                "item": "ee2:dark_matter_sword",
+                "count": 1
+            }
+        ]
+	}
+}

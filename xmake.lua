@@ -1,5 +1,5 @@
 -- Mod Options
-local mod_name = "Equivalent-Exchange" -- Replace with the name of your mod
+local mod_name = "Bedrock-Exchange" -- Replace with the name of your mod
 local targetMajor, targetMinor, targetPatch = 1, 21, 3 -- Replace with the target minecraft version
 local modVer = "1.0.0"
 

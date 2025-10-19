@@ -27,8 +27,6 @@ WeakPtr<Item> Items::RedMatterSword = nullptr;
 void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 {
 	ItemRegistry = &event.itemRegistry;
-	auto* item = ItemRegistry->mNameToItemMap["minecraft:diamond_sword"].get();
-	Log::Info("Virtual Table for minecraft:diamond_sword Item at {:x}", GetVtable(item));
 
 	// Alchemical Bags
 	for (const std::string& color : ModGlobals::AlchemicalBagColors) {

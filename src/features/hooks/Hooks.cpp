@@ -132,14 +132,8 @@ void Item_appendFormattedHovertext(const Item* self, const ItemStackBase& stack,
 		return;
 	uint64_t stackEMC = EMCUtils::calculateStackEMC(emc, stack);
 
-	static bool first = true;
-    static std::stringstream ss;
-    if (first) {
-        ss.imbue(std::locale(ss.getloc(), new dot_separator));
-		first = false;
-    }
-    ss.str("");
-	ss.clear();
+	std::stringstream ss;
+    ss.imbue(std::locale(ss.getloc(), new dot_separator));
 	ss << emc;
     hovertext += std::format("\n§eEMC: §f{}§r", ss.str());
     if (stack.mCount > 1) {
@@ -349,11 +343,10 @@ void CreateAllHooks(AmethystContext& ctx) {
         UIPropertyBag&
     );
 
+	auto bindFnAddr = GetVirtualFunctionOffset<static_cast<BindFn>(&HudScreenController::bind)>() / sizeof(void*) + 1;
     hooks.CreateHookAbsolute(
         _HudScreenController_bind,
-        reinterpret_cast<uintptr_t*>(HudScreenController::$vtable_for_this)[
-			GetVirtualFunctionOffset<static_cast<BindFn>(&HudScreenController::bind)>() / sizeof(void*) + 1 // +1 because overloads are weird
-        ],
+        reinterpret_cast<uintptr_t*>(HudScreenController::$vtable_for_this)[bindFnAddr],
         &HudScreenController_bind
 	);
 

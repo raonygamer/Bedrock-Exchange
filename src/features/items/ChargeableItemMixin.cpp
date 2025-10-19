@@ -48,7 +48,8 @@ void ChargeableItemMixin::charge(ItemStackBase& stack) {
 	auto& player = *client.getLocalPlayer();
 	const float startPitch = 0.5f;
 	float pitch = startPitch + (((float)nextCharge / mMaxCharge) * (1.0f - startPitch));
-	player.getLevel()->playSound("ui.item.charge", *player.getPosition(), 1.0f, pitch);
+	if (player.isClientSide())
+		player.getLevel()->playSound("ui.item.charge", *player.getPosition(), 1.0f, pitch);
 }
 
 void ChargeableItemMixin::uncharge(ItemStackBase& stack) {
@@ -64,5 +65,6 @@ void ChargeableItemMixin::uncharge(ItemStackBase& stack) {
 	auto& player = *client.getLocalPlayer();
 	const float startPitch = 0.7f;
 	float pitch = startPitch + (((float)currentCharge / mMaxCharge) * (1.0f - startPitch));
-	player.getLevel()->playSound("ui.item.uncharge", *player.getPosition(), 1.0f, pitch);
+	if (player.isClientSide())
+		player.getLevel()->playSound("ui.item.uncharge", *player.getPosition(), 1.0f, pitch);
 }

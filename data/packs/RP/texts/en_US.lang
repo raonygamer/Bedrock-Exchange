@@ -40,3 +40,6 @@ tile.ee2:red_matter_block.name=Red Matter Block
 tile.ee2:dark_matter_furnace.name=Dark Matter Furnace
 
 itemGroup.ee2:alchemical_bags.name=Alchemical Bags
+
+text.charge_damage.value=Charge Damage
+text.total_damage.value=Total Damage

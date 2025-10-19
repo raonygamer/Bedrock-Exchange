@@ -12,6 +12,7 @@
 #include "amethyst/runtime/AmethystContext.hpp"
 #include "amethyst/runtime/ModContext.hpp"
 #include "amethyst/runtime/utility/InlineHook.hpp"
+#include "amethyst/runtime/events/ModEvents.hpp"
 
 #include "mc/src/common/world/containers/models/ContainerModel.hpp"
 #include "mc/src/common/world/actor/player/Player.hpp"
@@ -305,6 +306,20 @@ bool HudScreenController_bind(
     );
 }
 
+SafetyHookMid _Actor_calculateAttackDamage_additionalDmgExt;
+void Actor_calculateAttackDamage_additionalDmgExt(SafetyHookContext& ctx) {
+	// ctx.rbp -> ItemStackBase*
+	// Since we are pinned to 1.21.0.3 here it's stable enough
+	const ItemStackBase* stack = reinterpret_cast<const ItemStackBase*>(ctx.rbp);
+	if (stack->isNull() || !stack->mUserData)
+		return;
+	auto* tag = stack->mUserData->get("AdditionalAttackDamage");
+	if (!tag || tag->getId() != Tag::Type::Int)
+		return;
+
+	ctx.rax += static_cast<IntTag*>(tag)->data;
+}
+
 void CreateAllHooks(AmethystContext& ctx) {
     auto& hooks = *ctx.mHookManager;
     HOOK(Player, $constructor);
@@ -316,6 +331,14 @@ void CreateAllHooks(AmethystContext& ctx) {
 	HOOK(VanillaItems, _addItemsCategory);
     HOOK(ContainerScreenController, _registerBindings);
 
+	// Extension to support tag "AdditionalAttackDamage" on ItemStack NBT
+	{
+		auto address = SigScanSafe("48 8B 15 ? ? ? ? 48 8B CF 66 0F 6E C0");
+		if (!address)
+			AssertFail("Failed to find signature for Actor_calculateAttackDamage_additionalDmgExt");
+		_Actor_calculateAttackDamage_additionalDmgExt = safetyhook::create_mid(*address, &Actor_calculateAttackDamage_additionalDmgExt);
+	}
+	
 	using BindFn = bool(HudScreenController::*)(
         const std::string&,
         uint32_t,
@@ -333,4 +356,9 @@ void CreateAllHooks(AmethystContext& ctx) {
         ],
         &HudScreenController_bind
 	);
+
+	// Cleanup manual hooks on mod shutdown
+	ctx.mEventBus->AddListener<BeforeModShutdownEvent>([](BeforeModShutdownEvent& event) {
+		_Actor_calculateAttackDamage_additionalDmgExt.reset();
+	});
 }

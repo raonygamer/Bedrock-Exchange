@@ -1,7 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/Bedrock-OSS/regolith-schemas/main/config/v1.4.json",
 	"author": "ryd3v",
-	"name": "Equivalent-Exchange",
+	"name": "Bedrock-Exchange",
 	"packs": {
 		"resourcePack": "./packs/RP",
 		"behaviorPack": "./packs/BP"
@@ -13,10 +13,10 @@
 		"profiles": {
 			"default": {
 				"export": {
-					"bpPath": "%localappdata%/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/amethyst/mods/Equivalent-Exchange@1.0.0/behavior_packs/main_bp",
+					"bpPath": "%localappdata%/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/amethyst/mods/Bedrock-Exchange@1.0.0/behavior_packs/main_bp",
 					"build": "standard",
 					"readOnly": false,
-					"rpPath": "%localappdata%/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/amethyst/mods/Equivalent-Exchange@1.0.0/resource_packs/main_rp",
+					"rpPath": "%localappdata%/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/LocalState/games/com.mojang/amethyst/mods/Bedrock-Exchange@1.0.0/resource_packs/main_rp",
 					"target": "exact"
 				},
 				"filters": []

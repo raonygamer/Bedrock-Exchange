@@ -5,7 +5,7 @@
 #include "features/emc/EMCRepository.hpp"
 #include "features/emc/EMCUtils.hpp"
 #include "features/items/Items.hpp"
-#include "features/items/ChargeableItemMixin.hpp"
+#include "features/items/behaviors/ChargeableItemBehavior.hpp"
 #include "features/blocks/Blocks.hpp"
 #include "features/blocks/actor/AlchemicalChestBlockActor.hpp"
 
@@ -32,6 +32,7 @@
 #include "mc/src-client/common/client/gui/screens/controllers/HudScreenController.hpp"
 #include "mc/src-client/common/client/gui/controls/UIPropertyBag.hpp"
 #include "mc/src/common/world/item/VanillaItems.hpp"
+#include "mc/src-deps/core/math/Color.hpp"
 
 using namespace ee2::emc;
 
@@ -168,21 +169,21 @@ void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, 
     Item::addCreativeItem(registry, *Blocks::DarkMatterFurnaceBlock->mDefaultState);
 }
 
-static const ChargeableItemMixin* getChargeableItem(const ItemStackBase& stack) {
+static ChargeableItemBehavior* getChargeableItem(const ItemStackBase& stack) {
     if (stack.isNull())
         return nullptr;
-    const Item* item = stack.getItem();
+    Item* item = stack.getItem();
     if (!item->hasTag("ee2:chargeable_item"))
         return nullptr;
-    return dynamic_cast<const ChargeableItemMixin*>(item);
+    return dynamic_cast<ChargeableItemBehavior*>(item);
 };
 #pragma optimize("", off)
 void ContainerScreenController__registerBindings(ContainerScreenController* self) {
     _ContainerScreenController__registerBindings(self);
     self->bindBoolForAnyCollection("#item_charge_visible", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
-        const ChargeableItemMixin* chargeableItem = getChargeableItem(stack);
-        if (!chargeableItem)
+        ChargeableItemBehavior* behavior = getChargeableItem(stack);
+        if (!behavior)
             return false;
         return true;
     }, [&](const std::string&, int) { 
@@ -193,8 +194,8 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     self->bindBool("#selected_item_charge_visible", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
-        const ChargeableItemMixin* chargeableItem = getChargeableItem(stack);
-        if (chargeableItem == nullptr)
+		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+        if (behavior == nullptr)
             return false;
         return true;
     }, [] {
@@ -204,10 +205,10 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
 
     self->bindFloatForAnyCollection("#item_charge_current_amount", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
-        const ChargeableItemMixin* chargeableItem = getChargeableItem(stack);
-        if (!chargeableItem)
+		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+        if (!behavior)
             return 0.0f;
-        return static_cast<float>(chargeableItem->getCharge(stack));
+        return static_cast<float>(behavior->getCharge(stack));
     }, [&](const std::string&, int) {
         return true;
     });
@@ -215,20 +216,20 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     self->bindFloat("#selected_item_charge_current_amount", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
-        const ChargeableItemMixin* chargeableItem = getChargeableItem(stack);
-        if (!chargeableItem)
+		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+        if (!behavior)
             return 0.0f;
-        return static_cast<float>(chargeableItem->getCharge(stack));
+        return static_cast<float>(behavior->getCharge(stack));
     }, [] {
         return true;
     });
 
     self->bindFloatForAnyCollection("#item_charge_total_amount", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
-        const ChargeableItemMixin* chargeableItem = getChargeableItem(stack);
-        if (!chargeableItem)
+		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+        if (!behavior)
             return 0.0f;
-        return static_cast<float>(chargeableItem->mMaxCharge);
+        return static_cast<float>(behavior->mMaxCharge);
     }, [&](const std::string&, int) {
         return true;
     });
@@ -236,10 +237,10 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     self->bindFloat("#selected_item_charge_total_amount", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
-        const ChargeableItemMixin* chargeableItem = getChargeableItem(stack);
-        if (!chargeableItem)
+		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+        if (!behavior)
             return 0.0f;
-        return static_cast<float>(chargeableItem->mMaxCharge);
+        return static_cast<float>(behavior->mMaxCharge);
     }, [] {
         return true;
     });
@@ -262,28 +263,28 @@ bool HudScreenController_bind(
 
     if (bindingNameHash == itemChargeVisibleHash) {
         const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
-		const ChargeableItemMixin* chargeableItem = getChargeableItem(stack);
+		ChargeableItemBehavior* behavior = getChargeableItem(stack);
 		bool value = false;
-        if (chargeableItem)
+        if (behavior)
             value = true;
         bag.set<bool>(bindingNameOverride, value);
         return true;
     }
     else if (bindingNameHash == itemChargeCurrentHash) {
         const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
-        const ChargeableItemMixin* chargeableItem = getChargeableItem(stack);
+		ChargeableItemBehavior* behavior = getChargeableItem(stack);
 		float value = 0.0f;
-        if (chargeableItem)
-			value = static_cast<float>(chargeableItem->getCharge(stack));
+        if (behavior)
+			value = static_cast<float>(behavior->getCharge(stack));
         bag.set<float>(bindingNameOverride, value);
 		return true;
     }
     else if (bindingNameHash == itemChargeTotalHash) {
         const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
-        const ChargeableItemMixin* chargeableItem = getChargeableItem(stack);
+		ChargeableItemBehavior* behavior = getChargeableItem(stack);
 		float value = 0.0f;
-		if (chargeableItem)
-            value = static_cast<float>(chargeableItem->mMaxCharge);
+		if (behavior)
+            value = static_cast<float>(behavior->mMaxCharge);
 		bag.set<float>(bindingNameOverride, value);
 		return true;
     }

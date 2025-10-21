@@ -9,7 +9,7 @@
 #include "mc/src/common/world/containers/models/ContainerModel.hpp"
 #include "mc/src/common/world/inventory/FillingContainer.hpp"
 
-#include "features/items/ChargeableItemMixin.hpp"
+#include "features/items/behaviors/ChargeableItemBehavior.hpp"
 #include "features/networking/UpdateItemChargePacket.hpp"
 
 void UpdateItemChargePacketHandler::handle(const NetworkIdentifier& networkId, NetEventCallback& netEvent, const Amethyst::CustomPacket& _packet) const {
@@ -27,21 +27,29 @@ void UpdateItemChargePacketHandler::handle(const NetworkIdentifier& networkId, N
 	if (!mainhandStack || mainhandStack.isNull() || !mainhandStack.getItem()->hasTag("ee2:chargeable_item"))
 		return;
 
-	ChargeableItemMixin* item = dynamic_cast<ChargeableItemMixin*>(mainhandStack.getItem());
-	if (!item)
-		AssertFail("Item has ee2:chargeable_item tag but is not a ChargeableItemMixin");
+	ChargeableItemBehavior* behavior = dynamic_cast<ChargeableItemBehavior*>(mainhandStack.getItem());
+	if (!behavior)
+		AssertFail("Item has ee2:chargeable_item tag but is not a ChargeableItemBehavior");
 
 	ItemStack mainHandStackCopy = mainhandStack;
 
 	const UpdateItemChargePacket& packet = static_cast<const UpdateItemChargePacket&>(_packet);
 
-	if (packet.mCharge)
-		item->charge(mainHandStackCopy);
-	else
-		item->uncharge(mainHandStackCopy);
+	if (packet.mCharge) {
+		short currentCharge = behavior->getCharge(mainHandStackCopy);
+		short nextCharge = currentCharge + behavior->mChargePerStep;
+		Log::Info("[Networked] Charging item '{}' from {} to {}", behavior->mItem->mFullName.getString(), currentCharge, nextCharge);
+		behavior->charge(mainHandStackCopy);
+	}
+	else {
+		short currentCharge = behavior->getCharge(mainHandStackCopy);
+		short nextCharge = currentCharge - behavior->mChargePerStep;
+		Log::Info("[Networked] Uncharging item '{}' from {} to {}", behavior->mItem->mFullName.getString(), currentCharge, nextCharge);
+		behavior->uncharge(mainHandStackCopy);
+	}
 
 	inventory.mInventory->createTransactionContext([](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
-	}, [&inventory, &mainHandStackCopy, &item] {
+	}, [&inventory, &mainHandStackCopy, &behavior] {
 		inventory.setSelectedItem(mainHandStackCopy);
 	});
 }

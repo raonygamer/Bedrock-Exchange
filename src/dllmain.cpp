@@ -5,7 +5,6 @@
 
 #include "features/hooks/Hooks.hpp"
 #include "features/items/Items.hpp"
-#include "features/items/ChargeableItemMixin.hpp"
 #include "features/blocks/Blocks.hpp"
 #include "features/containers/AlchemicalBagContainer.hpp"
 #include "features/components/AlchemicalBagContainerComponent.hpp"
@@ -14,7 +13,10 @@
 #include "features/items/Tiers.hpp"
 #include "features/networking/UpdateItemChargePacket.hpp"
 #include "features/networking/UpdateItemChargePacketHandler.hpp"
+#include "features/networking/SwitchItemModePacket.hpp"
+#include "features/networking/SwitchItemModePacketHandler.hpp"
 #include "features/inputs/ChargeableItemInputs.hpp"
+#include "features/inputs/ModeItemInputs.hpp"
 
 #include "mc/src/common/world/item/registry/ItemRegistry.hpp"
 #include "mc/src/common/world/item/Item.hpp"
@@ -31,6 +33,7 @@ ModFunction void Initialize(AmethystContext& ctx, const Amethyst::Mod& mod)
 	ModGlobals::InitializeEnums();
 	ee2::Tiers::Initialize();
 	ctx.mNetworkManager->RegisterPacketType<UpdateItemChargePacket>(std::make_unique<UpdateItemChargePacketHandler>());
+	ctx.mNetworkManager->RegisterPacketType<SwitchItemModePacket>(std::make_unique<SwitchItemModePacketHandler>());
 
 	// Listen to RegisterItemsEvent to add new items
     ctx.mEventBus->AddListener<RegisterItemsEvent>([&](RegisterItemsEvent& event) {
@@ -55,6 +58,7 @@ ModFunction void Initialize(AmethystContext& ctx, const Amethyst::Mod& mod)
 	// Listen to RegisterInputsEvent to add new inputs
     ctx.mEventBus->AddListener<RegisterInputsEvent>([&](RegisterInputsEvent& event) {
 		ChargeableItemInputs::Initialize(event, ctx);
+		ModeItemInputs::Initialize(event, ctx);
     });
 
     // Register game hooks

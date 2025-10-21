@@ -2,6 +2,7 @@
 #include "features/blocks/Blocks.hpp"
 #include "features/items/AlchemicalBagItem.hpp"
 #include "features/items/MatterSword.hpp"
+#include "features/items/RedMatterSword.hpp"
 #include "features/ModGlobals.hpp"
 
 #include "mc/src-client/common/client/game/ClientInstance.hpp"
@@ -124,13 +125,9 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 
 	// Red Matter Sword
 	{
-		auto item = event.itemRegistry.registerItemShared<MatterSword>(
+		auto item = event.itemRegistry.registerItemShared<::RedMatterSword>(
 			"ee2:red_matter_sword",
-			++event.itemRegistry.mMaxItemID,
-			*ee2::Tiers::RED_MATTER,
-			17,
-			3,
-			3
+			++event.itemRegistry.mMaxItemID
 		);
 		item->setIconInfo("ee2:red_matter_sword", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;

@@ -10,7 +10,7 @@
 #include "mc/src/common/world/inventory/FillingContainer.hpp"
 #include "mc/src-client/common/client/player/LocalPlayer.hpp"
 
-#include "features/items/ChargeableItemMixin.hpp"
+#include "features/items/behaviors/ChargeableItemBehavior.hpp"
 #include "features/networking/UpdateItemChargePacket.hpp"
 
 #include "amethyst/runtime/networking/NetworkManager.hpp"
@@ -21,7 +21,7 @@ void ChargeableItemInputs::Initialize(RegisterInputsEvent& event, AmethystContex
 	event.inputManager.RegisterNewInput("ee2.uncharge_item", { 'U' }, true).addButtonDownHandler(&UnchargeItem);
 }
 
-std::tuple<const ItemStack*, ChargeableItemMixin*, PlayerInventory*> ChargeableItemInputs::GetMainHandChargeableItem(ClientInstance& client) {
+std::tuple<const ItemStack*, ChargeableItemBehavior*, PlayerInventory*> ChargeableItemInputs::GetMainHandChargeableItem(ClientInstance& client) {
 	LocalPlayer& player = *client.getLocalPlayer();
 	PlayerInventory& inventory = player.getSupplies();
 	const ItemStack& mainhandStack = inventory.getSelectedItem();
@@ -29,45 +29,45 @@ std::tuple<const ItemStack*, ChargeableItemMixin*, PlayerInventory*> ChargeableI
 	if (!mainhandStack || mainhandStack.isNull() || !mainhandStack.getItem()->hasTag("ee2:chargeable_item"))
 		return { nullptr, nullptr, nullptr };
 
-	ChargeableItemMixin* item = dynamic_cast<ChargeableItemMixin*>(mainhandStack.getItem());
-	if (!item)
-		AssertFail("Item has ee2:chargeable_item tag but is not a ChargeableItemMixin");
-	return { &mainhandStack, item, &inventory };
+	ChargeableItemBehavior* behavior = dynamic_cast<ChargeableItemBehavior*>(mainhandStack.getItem());
+	if (!behavior)
+		AssertFail("Item has ee2:chargeable_item tag but is not a ChargeableItemBehavior");
+	return { &mainhandStack, behavior, &inventory };
 }
 
 Amethyst::InputPassthrough ChargeableItemInputs::ChargeItem(FocusImpact focus, ClientInstance& client) {
-	const auto [stack, item, inventory] = GetMainHandChargeableItem(client);
-	if (!stack || !item || !inventory)
+	const auto [stack, behavior, inventory] = GetMainHandChargeableItem(client);
+	if (!stack || !behavior || !inventory)
 		return Amethyst::InputPassthrough::Passthrough;
 
 	Level& level = static_cast<Level&>(*client.getLocalPlayer()->getLevel());
 	PacketSender& packetSender = *level.mPacketSender;
 
 	ItemStack mainHandStackCopy = *stack;
-	item->charge(mainHandStackCopy);
+	behavior->charge(mainHandStackCopy);
 
 	inventory->mInventory->createTransactionContext([&packetSender](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
 		Amethyst::GetNetworkManager().SendToServer(packetSender, std::make_unique<UpdateItemChargePacket>(true));
-	}, [&inventory, &mainHandStackCopy, &item] {
+	}, [&inventory, &mainHandStackCopy, &behavior] {
 		inventory->setSelectedItem(mainHandStackCopy);
 	});
 	return Amethyst::InputPassthrough::Consume;
 }
 
 Amethyst::InputPassthrough ChargeableItemInputs::UnchargeItem(FocusImpact focus, ClientInstance& client) {
-	const auto [stack, item, inventory] = GetMainHandChargeableItem(client);
-	if (!stack || !item || !inventory)
+	const auto [stack, behavior, inventory] = GetMainHandChargeableItem(client);
+	if (!stack || !behavior || !inventory)
 		return Amethyst::InputPassthrough::Passthrough;
 
 	Level& level = static_cast<Level&>(*client.getLocalPlayer()->getLevel());
 	PacketSender& packetSender = *level.mPacketSender;
 
 	ItemStack mainHandStackCopy = *stack;
-	item->uncharge(mainHandStackCopy);
+	behavior->uncharge(mainHandStackCopy);
 
 	inventory->mInventory->createTransactionContext([&packetSender](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
 		Amethyst::GetNetworkManager().SendToServer(packetSender, std::make_unique<UpdateItemChargePacket>(false));
-	}, [&inventory, &mainHandStackCopy, &item] {
+	}, [&inventory, &mainHandStackCopy, &behavior] {
 		inventory->setSelectedItem(mainHandStackCopy);
 	});
 	return Amethyst::InputPassthrough::Consume;

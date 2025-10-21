@@ -41,5 +41,12 @@ tile.ee2:dark_matter_furnace.name=Dark Matter Furnace
 
 itemGroup.ee2:alchemical_bags.name=Alchemical Bags
 
-text.charge_damage.value=Charge Damage
-text.total_damage.value=Total Damage
+hover.ee2:charge_damage.text=Charge Damage
+hover.ee2:total_damage.text=Total Damage
+hover.ee2:mode.text=Mode
+hover.ee2:mode.slay_hostile.text=Slay Hostile
+hover.ee2:mode.slay_all.text=Slay All
+
+key.ee2.charge_item=Charge Item
+key.ee2.uncharge_item=Uncharge Item
+key.ee2.switch_item_mode=Switch Item Mode

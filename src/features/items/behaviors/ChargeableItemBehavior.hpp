@@ -2,7 +2,7 @@
 #include "mc/src/common/world/item/Item.hpp"
 #include "mc/src/common/world/item/ItemStack.hpp"
 
-class ChargeableItemMixin
+class ChargeableItemBehavior
 {
 public:
 	Item* mItem = nullptr;
@@ -11,7 +11,7 @@ public:
 	const short mChargePerStep;
 	const short mStartingCharge = 0;
 
-	ChargeableItemMixin(Item* item, short maxCharge, short steps, short startingCharge = 0);
+	ChargeableItemBehavior(Item* item, short maxCharge, short steps, short startingCharge = 0);
 
 	virtual void setCharge(ItemStackBase& stack, short charge);
 	virtual short getCharge(const ItemStackBase& stack) const;

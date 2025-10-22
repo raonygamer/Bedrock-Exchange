@@ -17,7 +17,7 @@ void SwitchItemModePacketHandler::handle(const NetworkIdentifier& networkId, Net
 	ServerPlayer* serverPlayer = serverNetwork._getServerPlayer(networkId, SubClientId::PrimaryClient);
 
 	if (serverPlayer == nullptr) {
-		Log::Info("UpdateItemChargePacketHandler: ServerPlayer not found?");
+		Log::Info("SwitchItemModePacketHandler: ServerPlayer not found?");
 		return;
 	}
 
@@ -32,7 +32,6 @@ void SwitchItemModePacketHandler::handle(const NetworkIdentifier& networkId, Net
 		AssertFail("Item has ee2:switch_mode_item tag but is not a ModeItemBehavior");
 
 	ItemStack mainHandStackCopy = mainhandStack;
-
 	const SwitchItemModePacket& packet = static_cast<const SwitchItemModePacket&>(_packet);
 	
 	if (packet.mMode >= behavior->mModes.size()) {

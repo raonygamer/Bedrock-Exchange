@@ -29,6 +29,7 @@ item.ee2:dark_matter.name=Dark Matter
 item.ee2:red_matter.name=Red Matter
 
 item.ee2:dark_matter_sword.name=Dark Matter Sword
+item.ee2:dark_matter_pickaxe.name=Dark Matter Pickaxe
 item.ee2:red_matter_sword.name=Red Matter Sword
 
 tile.ee2:alchemical_coal_block.name=Alchemical Coal Block
@@ -46,6 +47,10 @@ hover.ee2:total_damage.text=Total Damage
 hover.ee2:mode.text=Mode
 hover.ee2:mode.slay_hostile.text=Slay Hostile
 hover.ee2:mode.slay_all.text=Slay All
+hover.ee2:mode.standard.text=Standard
+hover.ee2:mode.3x_tallshot.text=3x Tallshot
+hover.ee2:mode.3x_wideshot.text=3x Wideshot
+hover.ee2:mode.3x_longshot.text=3x Longshot
 
 key.ee2.charge_item=Charge Item
 key.ee2.uncharge_item=Uncharge Item

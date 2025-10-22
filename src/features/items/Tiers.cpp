@@ -16,7 +16,7 @@ namespace ee2 {
 		RED_MATTER =  std::make_unique<Item::Tier>(
 			6,     // level
 			-1,    // uses
-			20.0f, // speed
+			25.0f, // speed
 			7,     // damage
 			25     // enchantment value
 		);

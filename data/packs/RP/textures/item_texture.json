@@ -52,6 +52,9 @@
         "ee2:dark_matter_sword": {
             "textures": "textures/items/dm_tools/sword"
         },
+        "ee2:dark_matter_pickaxe": {
+            "textures": "textures/items/dm_tools/pickaxe"
+        },
         "ee2:red_matter_sword": {
             "textures": "textures/items/rm_tools/sword"
         }

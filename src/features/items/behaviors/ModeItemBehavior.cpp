@@ -1,4 +1,8 @@
 #include "ModeItemBehavior.hpp"
+#include <format>
+#include "amethyst/runtime/ModContext.hpp"
+#include "mc/src/common/locale/I18n.hpp"
+#include "mc/src-client/common/client/gui/gui/GuiData.hpp"
 
 ModeItemBehavior::ModeItemBehavior(Item* item, const std::vector<std::string>& modes, size_t defaultMode = 0) :
 	mItem(item),
@@ -18,6 +22,15 @@ void ModeItemBehavior::setMode(ItemStackBase& stack, size_t mode) {
 		stack.mUserData->put("Mode", IntTag(int(mode)));
 	else
 		stack.mUserData->getIntTag("Mode")->data = int(mode);
+
+	if (!Amethyst::IsOnMainClientThread())
+		return;
+	auto& client = *Amethyst::GetClientCtx().mClientInstance;
+	auto modeNameKey = std::format("hover.ee2:{}.text", getModeName(mode));
+	client.mGuiData->displayLocalizedMessage(std::format(
+		"Switched to §b{}§r Mode",
+		getI18n().get(modeNameKey, nullptr)
+	));
 }
 
 size_t ModeItemBehavior::getMode(const ItemStackBase& stack) const {

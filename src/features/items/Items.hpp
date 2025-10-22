@@ -21,6 +21,7 @@ public:
 	static WeakPtr<Item> DarkMatter;
 	static WeakPtr<Item> RedMatter;
 	static WeakPtr<Item> DarkMatterSword;
+	static WeakPtr<Item> DarkMatterPickaxe;
 	static WeakPtr<Item> RedMatterSword;
 
 	static void RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx);

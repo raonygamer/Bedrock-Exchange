@@ -5,9 +5,12 @@
 #include "features/emc/EMCRepository.hpp"
 #include "features/emc/EMCUtils.hpp"
 #include "features/items/Items.hpp"
+#include "features/items/MatterPickaxe.hpp"
 #include "features/items/behaviors/ChargeableItemBehavior.hpp"
+#include "features/items/behaviors/ModeItemBehavior.hpp"
 #include "features/blocks/Blocks.hpp"
 #include "features/blocks/actor/AlchemicalChestBlockActor.hpp"
+#include "features/utility/BlockUtils.hpp"
 
 #include "amethyst/runtime/AmethystContext.hpp"
 #include "amethyst/runtime/ModContext.hpp"
@@ -28,9 +31,18 @@
 #include "mc/src/common/world/level/Level.hpp"
 #include "mc/src/common/world/item/registry/TrimMaterialRegistry.hpp"
 #include "mc/src/common/world/item/registry/TrimPatternRegistry.hpp"
+#include "mc/src/common/world/level/BlockSource.hpp"
+#include "mc/src/common/world/level/block/Block.hpp"
+#include "mc/src/common/world/inventory/transaction/ItemUseInventoryTransaction.hpp"
+#include "mc/src/common/world/gamemode/GameMode.hpp"
+#include "mc/src/common/Minecraft.hpp"
 #include "mc/src-client/common/client/renderer/blockActor/ChestRenderer.hpp"
 #include "mc/src-client/common/client/gui/screens/controllers/HudScreenController.hpp"
+#include "mc/src-client/common/client/player/LocalPlayer.hpp"
 #include "mc/src-client/common/client/gui/controls/UIPropertyBag.hpp"
+#include "mc/src-client/common/client/gui/screens/InGamePlayScreen.hpp"
+#include "mc/src-client/common/client/renderer/game/LevelRenderer.hpp"
+#include "mc/src-client/common/client/renderer/game/LevelRendererPlayer.hpp"
 #include "mc/src/common/world/item/VanillaItems.hpp"
 #include "mc/src-deps/core/math/Color.hpp"
 
@@ -48,6 +60,8 @@ Amethyst::InlineHook<decltype(&VanillaItems::_addItemsCategory)> _VanillaItems__
 Amethyst::InlineHook<decltype(&ContainerScreenController::_registerBindings)> _ContainerScreenController__registerBindings;
 Amethyst::InlineHook<decltype(&HudScreenController::$constructor)> _HudScreenController_$constructor;
 Amethyst::InlineHook<decltype(Amethyst::OverloadCast<bool(HudScreenController::*)(const std::string&, uint32_t, int, const std::string&, uint32_t, const std::string&, UIPropertyBag&)>(&HudScreenController::bind))> _HudScreenController_bind;
+Amethyst::InlineHook<decltype(&InGamePlayScreen::_renderLevel)> _InGamePlayScreen__renderLevel;
+Amethyst::InlineHook<decltype(&GameMode::destroyBlock)> _GameMode_destroyBlock;
 
 void Player_readAdditionalSaveData(Player* self, const CompoundTag& tag, DataLoadHelper& helper) {
     _Player_readAdditionalSaveData(self, tag, helper);
@@ -177,7 +191,16 @@ static ChargeableItemBehavior* getChargeableItem(const ItemStackBase& stack) {
         return nullptr;
     return dynamic_cast<ChargeableItemBehavior*>(item);
 };
-#pragma optimize("", off)
+
+static ModeItemBehavior* getModeItem(const ItemStackBase& stack) {
+	if (stack.isNull())
+		return nullptr;
+	Item* item = stack.getItem();
+	if (!item->hasTag("ee2:switch_mode_item"))
+		return nullptr;
+	return dynamic_cast<ModeItemBehavior*>(item);
+};
+
 void ContainerScreenController__registerBindings(ContainerScreenController* self) {
     _ContainerScreenController__registerBindings(self);
     self->bindBoolForAnyCollection("#item_charge_visible", [self](const std::string& collection, int index) {
@@ -245,7 +268,6 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
         return true;
     });
 }
-#pragma optimize("", on)
 
 bool HudScreenController_bind(
     HudScreenController* self, 
@@ -301,6 +323,83 @@ bool HudScreenController_bind(
     );
 }
 
+void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screenContext, const FrameRenderObject& renderObj) {
+	_InGamePlayScreen__renderLevel(self, screenContext, renderObj);
+
+	auto& client = *Amethyst::GetClientCtx().mClientInstance;
+	auto& game = *client.mMinecraftGame;
+	auto& region = *client.getRegion();
+	auto& player = *client.getLocalPlayer();
+	auto& hitRes = player.getLevel()->getHitResult();
+	if (hitRes.mType == HitResultType::NO_HIT || hitRes.mIsHitLiquid)
+		return;
+
+	BaseActorRenderContext ctx(screenContext, client, game);
+	auto& levelRendererPlayer = *client.mLevelRenderer->mLevelRendererPlayer;
+	PlayerInventory& inventory = player.getSupplies();
+	const ItemStack& mainhandStack = inventory.getSelectedItem();
+	if (mainhandStack.isNull())
+		return;
+
+	if (mainhandStack.mItem == Items::PhilosophersStone) {
+		ChargeableItemBehavior* behavior = getChargeableItem(mainhandStack);
+		if (!behavior)
+			return;
+
+		int charge = behavior->getCharge(mainhandStack);
+		int radius = std::clamp(charge, 0, 12);
+		int maxBlocks = std::min(1000, (2 * radius + 1) * (2 * radius + 1) * (2 * radius + 1));
+		
+		std::vector<std::pair<BlockPos, const Block*>> blocks = BlockUtils::floodFillBlocks(region, hitRes.mBlock, region.getBlock(hitRes.mBlock).mLegacyBlock, radius, maxBlocks);
+		for (const auto& [pos, block] : blocks) {
+			levelRendererPlayer._renderHighlightSelection(ctx, region, *block, pos, false, true);
+			levelRendererPlayer._renderOutlineSelection(screenContext, *block, region, pos);
+		}
+	}
+	else if (mainhandStack.mItem == Items::DarkMatterPickaxe) {
+		MatterPickaxe* matterPickaxe = static_cast<MatterPickaxe*>(mainhandStack.mItem.get());
+		ChargeableItemBehavior* chargeBehavior = getChargeableItem(mainhandStack);
+		ModeItemBehavior* modeBehavior = getModeItem(mainhandStack);
+		if (!chargeBehavior || !modeBehavior)
+			return;
+
+		Directions dirs = Directions::fromLookVec3(player.getHeadLookVector(1.0f));
+		int charge = chargeBehavior->getCharge(mainhandStack);
+		if (charge < chargeBehavior->mMaxCharge)
+			return;
+		auto blocks = matterPickaxe->getBlocksForMode(mainhandStack, region, hitRes.mBlock, dirs);
+		for (const auto& [pos, block] : blocks) {
+			if (pos == hitRes.mBlock)
+				continue;
+			levelRendererPlayer.renderHitSelect(ctx, region, pos, true);
+		}
+	}
+}
+
+bool GameMode_destroyBlock(GameMode* self, const BlockPos& pos, FacingID face) {
+	auto result = _GameMode_destroyBlock(self, pos, face);
+	PlayerInventory& inventory = self->mPlayer.getSupplies();
+	const ItemStack& mainhandStack = inventory.getSelectedItem();
+
+	static HashedString matterPickaxeTag("ee2:dark_matter_pickaxe");
+	if (mainhandStack.isNull() || mainhandStack.mItem->mFullName != matterPickaxeTag)
+		return result;
+
+	MatterPickaxe* pickaxe = static_cast<MatterPickaxe*>(mainhandStack.mItem.get());
+	if (pickaxe->getCharge(mainhandStack) < pickaxe->mMaxCharge)
+		return result;
+	
+	Directions dirs = Directions::fromLookVec3(self->mPlayer.getHeadLookVector(1.0f));
+	auto& region = self->mPlayer.getDimensionBlockSource();
+	auto blocks = pickaxe->getBlocksForMode(mainhandStack, region, pos, dirs);
+	for (const auto& [blockPos, block] : blocks) {
+		if (blockPos == pos)
+			continue;
+		_GameMode_destroyBlock(self, blockPos, face);
+	}
+	return result;
+}
+
 SafetyHookMid _Actor_calculateAttackDamage_additionalDmgExt;
 void Actor_calculateAttackDamage_additionalDmgExt(SafetyHookContext& ctx) {
 	// ctx.rbp -> ItemStackBase*
@@ -320,11 +419,17 @@ void CreateAllHooks(AmethystContext& ctx) {
     HOOK(Player, $constructor);
     HOOK(ContainerWeakRef, tryGetActorContainer);
 	HOOK(ContainerValidatorFactory, getBackingContainer);
-    VHOOK(Item, appendFormattedHovertext, this);
 	HOOK(Recipes, init);
 	HOOK(BlockActorFactory, createBlockEntity);
 	HOOK(VanillaItems, _addItemsCategory);
     HOOK(ContainerScreenController, _registerBindings);
+	HOOK(InGamePlayScreen, _renderLevel);
+
+    VHOOK(Item, appendFormattedHovertext, this);
+	//VHOOK(GameMode, startDestroyBlock, this);
+	//VHOOK(GameMode, continueDestroyBlock, this);
+	VHOOK(GameMode, destroyBlock, this);
+	//VHOOK(GameMode, stopDestroyBlock, this);
 
 	// Extension to support tag "AdditionalAttackDamage" on ItemStack NBT
 	{

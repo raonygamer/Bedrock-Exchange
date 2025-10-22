@@ -2,6 +2,7 @@
 #include "features/blocks/Blocks.hpp"
 #include "features/items/AlchemicalBagItem.hpp"
 #include "features/items/MatterSword.hpp"
+#include "features/items/MatterPickaxe.hpp"
 #include "features/items/RedMatterSword.hpp"
 #include "features/ModGlobals.hpp"
 
@@ -23,11 +24,13 @@ WeakPtr<Item> Items::HighCovalenceDust = nullptr;
 WeakPtr<Item> Items::DarkMatter = nullptr;
 WeakPtr<Item> Items::RedMatter = nullptr;
 WeakPtr<Item> Items::DarkMatterSword = nullptr;
+WeakPtr<Item> Items::DarkMatterPickaxe = nullptr;
 WeakPtr<Item> Items::RedMatterSword = nullptr;
 
 void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 {
 	ItemRegistry = &event.itemRegistry;
+	auto* item = ItemRegistry->mNameToItemMap["minecraft:diamond_pickaxe"].get();
 
 	// Alchemical Bags
 	for (const std::string& color : ModGlobals::AlchemicalBagColors) {
@@ -39,7 +42,8 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 	// Philosopher's Stone
 	{
 		auto item = event.itemRegistry.registerItemShared<BasicChargeableItem>("ee2:philosophers_stone", ++event.itemRegistry.mMaxItemID, 4, 4);
-		item->setIconInfo("ee2:philosophers_stone", 0);
+		item->setIconInfo("ee2:philosophers_stone", 0)
+			.setMaxStackSize(1);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		PhilosophersStone = item;
 	}
@@ -121,6 +125,23 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 		item->setIconInfo("ee2:dark_matter_sword", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterSword = item;
+	}
+
+	// Dark Matter Pìckaxe
+	{
+		auto item = event.itemRegistry.registerItemShared<MatterPickaxe>(
+			"ee2:dark_matter_pickaxe",
+			++event.itemRegistry.mMaxItemID,
+			*ee2::Tiers::DARK_MATTER,
+			2,
+			2,
+			0,
+			std::vector<std::string> { "mode.standard", "mode.3x_tallshot", "mode.3x_wideshot", "mode.3x_longshot" },
+			0
+		);
+		item->setIconInfo("ee2:dark_matter_pickaxe", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		DarkMatterPickaxe = item;
 	}
 
 	// Red Matter Sword

@@ -426,10 +426,7 @@ void CreateAllHooks(AmethystContext& ctx) {
 	HOOK(InGamePlayScreen, _renderLevel);
 
     VHOOK(Item, appendFormattedHovertext, this);
-	//VHOOK(GameMode, startDestroyBlock, this);
-	//VHOOK(GameMode, continueDestroyBlock, this);
 	VHOOK(GameMode, destroyBlock, this);
-	//VHOOK(GameMode, stopDestroyBlock, this);
 
 	// Extension to support tag "AdditionalAttackDamage" on ItemStack NBT
 	{

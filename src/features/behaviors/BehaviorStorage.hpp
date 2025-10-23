@@ -79,7 +79,4 @@ public:
 	void removeBehavior(T* behavior) {
 		removeBehavior(static_cast<Behavior*>(behavior));
 	}
-
-	static ItemBehaviorStorage* getForItem(Item& item);
-	static const ItemBehaviorStorage* getForItem(const Item& item);
 };

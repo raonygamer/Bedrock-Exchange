@@ -9,7 +9,7 @@
 #include "features/items/MatterAxe.hpp"
 #include "features/items/MatterShovel.hpp"
 #include "features/behaviors/items/types/ChargeableItem.hpp"
-#include "features/items/behaviors/ModeItemBehavior.hpp"
+#include "features/behaviors/items/types/ModeItem.hpp"
 #include "features/blocks/Blocks.hpp"
 #include "features/blocks/actor/AlchemicalChestBlockActor.hpp"
 #include "features/utility/BlockUtils.hpp"
@@ -188,30 +188,11 @@ void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, 
     Item::addCreativeItem(registry, *Blocks::DarkMatterFurnaceBlock->mDefaultState);
 }
 
-static ChargeableItem* getChargeableItem(const ItemStackBase& stack) {
-    if (stack.isNull())
-		return nullptr;
-	Item* item = stack.getItem();
-	ItemBehaviorStorage* storage = BehaviorStorage::getForItem(*item);
-	if (!storage)
-		return nullptr;
-	return storage->getFirstBehavior<ChargeableItem>();
-};
-
-static ModeItemBehavior* getModeItem(const ItemStackBase& stack) {
-	if (stack.isNull())
-		return nullptr;
-	Item* item = stack.getItem();
-	if (!item->hasTag("ee2:switch_mode_item"))
-		return nullptr;
-	return dynamic_cast<ModeItemBehavior*>(item);
-};
-
 void ContainerScreenController__registerBindings(ContainerScreenController* self) {
     _ContainerScreenController__registerBindings(self);
     self->bindBoolForAnyCollection("#item_charge_visible", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
-        ChargeableItem* behavior = getChargeableItem(stack);
+		auto* behavior = ChargeableItem::tryGet(stack);
         if (!behavior)
             return false;
         return true;
@@ -223,7 +204,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     self->bindBool("#selected_item_charge_visible", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
-		ChargeableItem* behavior = getChargeableItem(stack);
+		auto* behavior = ChargeableItem::tryGet(stack);
         if (behavior == nullptr)
             return false;
         return true;
@@ -234,7 +215,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
 
     self->bindFloatForAnyCollection("#item_charge_current_amount", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
-		ChargeableItem* behavior = getChargeableItem(stack);
+		auto* behavior = ChargeableItem::tryGet(stack);
         if (!behavior)
             return 0.0f;
         return static_cast<float>(behavior->getCharge(stack));
@@ -245,7 +226,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     self->bindFloat("#selected_item_charge_current_amount", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
-		ChargeableItem* behavior = getChargeableItem(stack);
+		auto* behavior = ChargeableItem::tryGet(stack);
         if (!behavior)
             return 0.0f;
         return static_cast<float>(behavior->getCharge(stack));
@@ -255,7 +236,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
 
     self->bindFloatForAnyCollection("#item_charge_total_amount", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
-		ChargeableItem* behavior = getChargeableItem(stack);
+		auto* behavior = ChargeableItem::tryGet(stack);
         if (!behavior)
             return 0.0f;
         return static_cast<float>(behavior->mMaxCharge);
@@ -266,7 +247,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     self->bindFloat("#selected_item_charge_total_amount", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
-		ChargeableItem* behavior = getChargeableItem(stack);
+		auto* behavior = ChargeableItem::tryGet(stack);
         if (!behavior)
             return 0.0f;
         return static_cast<float>(behavior->mMaxCharge);
@@ -291,7 +272,7 @@ bool HudScreenController_bind(
 
     if (bindingNameHash == itemChargeVisibleHash) {
         const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
-		ChargeableItem* behavior = getChargeableItem(stack);
+		auto* behavior = ChargeableItem::tryGet(stack);
 		bool value = false;
         if (behavior)
             value = true;
@@ -300,7 +281,7 @@ bool HudScreenController_bind(
     }
     else if (bindingNameHash == itemChargeCurrentHash) {
         const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
-		ChargeableItem* behavior = getChargeableItem(stack);
+		auto* behavior = ChargeableItem::tryGet(stack);
 		float value = 0.0f;
         if (behavior)
 			value = static_cast<float>(behavior->getCharge(stack));
@@ -309,7 +290,7 @@ bool HudScreenController_bind(
     }
     else if (bindingNameHash == itemChargeTotalHash) {
         const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
-		ChargeableItem* behavior = getChargeableItem(stack);
+		auto* behavior = ChargeableItem::tryGet(stack);
 		float value = 0.0f;
 		if (behavior)
             value = static_cast<float>(behavior->mMaxCharge);
@@ -343,17 +324,17 @@ void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screen
 	BaseActorRenderContext ctx(screenContext, client, game);
 	auto& levelRendererPlayer = *client.mLevelRenderer->mLevelRendererPlayer;
 	PlayerInventory& inventory = player.getSupplies();
-	const ItemStack& mainhandStack = inventory.getSelectedItem();
-	if (mainhandStack.isNull())
+	const ItemStack& stack = inventory.getSelectedItem();
+	if (stack.isNull())
 		return;
 
 	std::vector<std::pair<BlockPos, const Block*>> blocks;
-	if (mainhandStack.mItem == Items::PhilosophersStone) {
-		ChargeableItem* behavior = getChargeableItem(mainhandStack);
+	if (stack.mItem == Items::PhilosophersStone) {
+		auto* behavior = ChargeableItem::tryGet(stack);
 		if (!behavior)
 			return;
 
-		int charge = behavior->getCharge(mainhandStack);
+		int charge = behavior->getCharge(stack);
 		int radius = std::clamp(charge, 0, 12);
 		int maxBlocks = std::min(1000, (2 * radius + 1) * (2 * radius + 1) * (2 * radius + 1));
 		
@@ -364,44 +345,44 @@ void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screen
 		}
 		return;
 	}
-	else if (mainhandStack.mItem == Items::DarkMatterPickaxe) {
-		MatterPickaxe* item = static_cast<MatterPickaxe*>(mainhandStack.mItem.get());
-		ChargeableItem* chargeBehavior = getChargeableItem(mainhandStack);
-		ModeItemBehavior* modeBehavior = getModeItem(mainhandStack);
+	else if (stack.mItem == Items::DarkMatterPickaxe) {
+		MatterPickaxe* item = static_cast<MatterPickaxe*>(stack.mItem.get());
+		auto* chargeBehavior = ChargeableItem::tryGet(stack);
+		auto* modeBehavior = ModeItem::tryGet(stack);
 		if (!chargeBehavior || !modeBehavior)
 			return;
 
 		Directions dirs = Directions::fromLookVec3(player.getHeadLookVector(1.0f));
-		int charge = chargeBehavior->getCharge(mainhandStack);
+		int charge = chargeBehavior->getCharge(stack);
 		if (charge < chargeBehavior->mMaxCharge)
 			return;
-		blocks = item->getBlocksForMode(mainhandStack, region, hitRes.mBlock, dirs);
+		blocks = item->getBlocksForMode(stack, region, hitRes.mBlock, dirs);
 	}
-	else if (mainhandStack.mItem == Items::DarkMatterAxe) {
-		MatterAxe* item = static_cast<MatterAxe*>(mainhandStack.mItem.get());
-		ChargeableItem* chargeBehavior = getChargeableItem(mainhandStack);
-		ModeItemBehavior* modeBehavior = getModeItem(mainhandStack);
+	else if (stack.mItem == Items::DarkMatterAxe) {
+		MatterAxe* item = static_cast<MatterAxe*>(stack.mItem.get());
+		auto* chargeBehavior = ChargeableItem::tryGet(stack);
+		auto* modeBehavior = ModeItem::tryGet(stack);
 		if (!chargeBehavior || !modeBehavior)
 			return;
 
 		Directions dirs = Directions::fromLookVec3(player.getHeadLookVector(1.0f));
-		int charge = chargeBehavior->getCharge(mainhandStack);
+		int charge = chargeBehavior->getCharge(stack);
 		if (charge < chargeBehavior->mMaxCharge)
 			return;
-		blocks = item->getBlocksForMode(mainhandStack, region, hitRes.mBlock, dirs);
+		blocks = item->getBlocksForMode(stack, region, hitRes.mBlock, dirs);
 	}
-	else if (mainhandStack.mItem == Items::DarkMatterShovel) {
-		MatterShovel* item = static_cast<MatterShovel*>(mainhandStack.mItem.get());
-		ChargeableItem* chargeBehavior = getChargeableItem(mainhandStack);
-		ModeItemBehavior* modeBehavior = getModeItem(mainhandStack);
+	else if (stack.mItem == Items::DarkMatterShovel) {
+		MatterShovel* item = static_cast<MatterShovel*>(stack.mItem.get());
+		auto* chargeBehavior = ChargeableItem::tryGet(stack);
+		auto* modeBehavior = ModeItem::tryGet(stack);
 		if (!chargeBehavior || !modeBehavior)
 			return;
 
 		Directions dirs = Directions::fromLookVec3(player.getHeadLookVector(1.0f));
-		int charge = chargeBehavior->getCharge(mainhandStack);
+		int charge = chargeBehavior->getCharge(stack);
 		if (charge < chargeBehavior->mMaxCharge)
 			return;
-		blocks = item->getBlocksForMode(mainhandStack, region, hitRes.mBlock, dirs);
+		blocks = item->getBlocksForMode(stack, region, hitRes.mBlock, dirs);
 	}
 
 	for (const auto& [pos, block] : blocks) {
@@ -413,34 +394,38 @@ void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screen
 
 bool GameMode_destroyBlock(GameMode* self, const BlockPos& pos, FacingID face) {
 	PlayerInventory& inventory = self->mPlayer.getSupplies();
-	const ItemStack& mainhandStack = inventory.getSelectedItem();
+	const ItemStack& stack = inventory.getSelectedItem();
 
 	static HashedString matterPickaxeTag("ee2:dark_matter_pickaxe");
 	static HashedString matterAxeTag("ee2:dark_matter_axe");
 	static HashedString matterShovelTag("ee2:dark_matter_shovel");
-	if (mainhandStack.isNull())
+	if (stack.isNull())
 		return _GameMode_destroyBlock(self, pos, face);
 
 	Directions dirs = Directions::fromLookVec3(self->mPlayer.getHeadLookVector(1.0f));
 	auto& region = self->mPlayer.getDimensionBlockSource();
 	std::vector<std::pair<BlockPos, const Block*>> blocks;
-	/*if (mainhandStack.mItem.get()->mFullName == matterPickaxeTag) {
-		MatterPickaxe* item = static_cast<MatterPickaxe*>(mainhandStack.mItem.get());
-		if (item->getCharge(mainhandStack) < item->mMaxCharge)
+	auto* chargeBehavior = ChargeableItem::tryGet(stack);
+	if (!chargeBehavior)
+		return _GameMode_destroyBlock(self, pos, face);
+
+	if (stack.mItem.get()->mFullName == matterPickaxeTag) {
+		MatterPickaxe* item = static_cast<MatterPickaxe*>(stack.mItem.get());
+		if (chargeBehavior->getCharge(stack) < chargeBehavior->mMaxCharge)
 			return _GameMode_destroyBlock(self, pos, face);
-		blocks = item->getBlocksForMode(mainhandStack, region, pos, dirs);
+		blocks = item->getBlocksForMode(stack, region, pos, dirs);
 	}
-	else if (mainhandStack.mItem.get()->mFullName == matterAxeTag) {
-		MatterAxe* item = static_cast<MatterAxe*>(mainhandStack.mItem.get());
-		if (item->getCharge(mainhandStack) < item->mMaxCharge)
+	else if (stack.mItem.get()->mFullName == matterAxeTag) {
+		MatterAxe* item = static_cast<MatterAxe*>(stack.mItem.get());
+		if (chargeBehavior->getCharge(stack) < chargeBehavior->mMaxCharge)
 			return _GameMode_destroyBlock(self, pos, face);
-		blocks = item->getBlocksForMode(mainhandStack, region, pos, dirs);
+		blocks = item->getBlocksForMode(stack, region, pos, dirs);
 	}
-	else if (mainhandStack.mItem.get()->mFullName == matterShovelTag) {
-		MatterShovel* item = static_cast<MatterShovel*>(mainhandStack.mItem.get());
-		if (item->getCharge(mainhandStack) < item->mMaxCharge)
+	else if (stack.mItem.get()->mFullName == matterShovelTag) {
+		MatterShovel* item = static_cast<MatterShovel*>(stack.mItem.get());
+		if (chargeBehavior->getCharge(stack) < chargeBehavior->mMaxCharge)
 			return _GameMode_destroyBlock(self, pos, face);
-		blocks = item->getBlocksForMode(mainhandStack, region, pos, dirs);
+		blocks = item->getBlocksForMode(stack, region, pos, dirs);
 	}
 	else {
 		return _GameMode_destroyBlock(self, pos, face);
@@ -451,7 +436,7 @@ bool GameMode_destroyBlock(GameMode* self, const BlockPos& pos, FacingID face) {
 		if (blockPos == pos)
 			continue;
 		_GameMode_destroyBlock(self, blockPos, face);
-	}*/
+	}
 	return _GameMode_destroyBlock(self, pos, face);
 }
 

@@ -58,21 +58,3 @@ void BehaviorStorage::removeBehavior(Behavior* behavior) {
 		behaviors.end()
 	);
 }
-
-ItemBehaviorStorage* BehaviorStorage::getForItem(Item& item) {
-	if (!item.hasTag(ItemBehaviorStorage::STORAGE_TAG))
-		return nullptr;
-	if (auto storage = dynamic_cast<ItemBehaviorStorage*>(&item)) {
-		return storage;
-	}
-	AssertFail("Item has behavior storage tag but is not an ItemBehaviorStorage.");
-}
-
-const ItemBehaviorStorage* BehaviorStorage::getForItem(const Item& item) {
-	if (!item.hasTag(ItemBehaviorStorage::STORAGE_TAG))
-		return nullptr;
-	if (auto storage = dynamic_cast<const ItemBehaviorStorage*>(&item)) {
-		return storage;
-	}
-	AssertFail("Item has behavior storage tag but is not an ItemBehaviorStorage.");
-}

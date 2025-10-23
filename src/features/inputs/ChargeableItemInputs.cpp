@@ -25,20 +25,16 @@ void ChargeableItemInputs::Initialize(RegisterInputsEvent& event, AmethystContex
 std::tuple<const ItemStack*, ChargeableItem*, PlayerInventory*> ChargeableItemInputs::GetMainHandChargeableItem(ClientInstance& client) {
 	LocalPlayer& player = *client.getLocalPlayer();
 	PlayerInventory& inventory = player.getSupplies();
-	const ItemStack& mainhandStack = inventory.getSelectedItem();
+	const ItemStack& stack = inventory.getSelectedItem();
 
-	if (!mainhandStack || mainhandStack.isNull())
+	if (!stack || stack.isNull())
 		return { nullptr, nullptr, nullptr };
 
-	ItemBehaviorStorage* storage = BehaviorStorage::getForItem(*mainhandStack.getItem());
-	if (!storage)
-		return { nullptr, nullptr, nullptr };
-
-	ChargeableItem* behavior = storage->getFirstBehavior<ChargeableItem>();
+	ChargeableItem* behavior = ChargeableItem::tryGet(stack);
 	if (!behavior)
 		return { nullptr, nullptr, nullptr };
 
-	return { &mainhandStack, behavior, &inventory };
+	return { &stack, behavior, &inventory };
 }
 
 Amethyst::InputPassthrough ChargeableItemInputs::ChargeItem(FocusImpact focus, ClientInstance& client) {

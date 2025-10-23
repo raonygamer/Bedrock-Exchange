@@ -1,7 +1,9 @@
 #pragma once
 #include "features/behaviors/items/ItemBehavior.hpp"
 
+class Item;
 class ItemStackBase;
+class ItemBehaviorStorage;
 class ChargeableItem :
 	public ItemBehavior 
 {
@@ -35,4 +37,9 @@ public:
 	void uncharge(ItemStackBase& stack);
 	void playChargeSound(short charge);
 	void playUnchargeSound(short charge);
+
+	static ChargeableItem* tryGet(const ItemStackBase& stack);
+	static const ChargeableItem* tryGet(const Item* item);
+	static ChargeableItem* tryGet(Item* item);
+	static ChargeableItem* tryGet(ItemBehaviorStorage* storage);
 };

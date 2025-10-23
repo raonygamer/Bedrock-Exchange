@@ -23,38 +23,38 @@ void UpdateItemChargePacketHandler::handle(const NetworkIdentifier& networkId, N
 	}
 
 	PlayerInventory& inventory = serverPlayer->getSupplies();
-	const ItemStack& mainhandStack = inventory.getSelectedItem();
+	const ItemStack& stack = inventory.getSelectedItem();
 
-	if (!mainhandStack || mainhandStack.isNull()) 
+	if (!stack || stack.isNull()) 
 		return;
 
-	ItemBehaviorStorage* storage = BehaviorStorage::getForItem(*mainhandStack.getItem());
+	auto* storage = ItemBehaviorStorage::tryGetStorage(*stack.getItem());
 	if (!storage)
 		return;
 
-	ChargeableItem* behavior = storage->getFirstBehavior<ChargeableItem>();
+	auto* behavior = storage->getFirstBehavior<ChargeableItem>();
 	if (!behavior)
 		return;
 
-	ItemStack mainHandStackCopy = mainhandStack;
+	ItemStack stackCopy = stack;
 
 	const UpdateItemChargePacket& packet = static_cast<const UpdateItemChargePacket&>(_packet);
 
 	if (packet.mCharge) {
-		short currentCharge = behavior->getCharge(mainHandStackCopy);
+		short currentCharge = behavior->getCharge(stackCopy);
 		short nextCharge = currentCharge + behavior->mChargePerStep;
 		Log::Info("[Networked] Charging item '{}' from {} to {}", storage->getOwner()->mFullName.getString(), currentCharge, nextCharge);
-		behavior->charge(mainHandStackCopy);
+		behavior->charge(stackCopy);
 	}
 	else {
-		short currentCharge = behavior->getCharge(mainHandStackCopy);
+		short currentCharge = behavior->getCharge(stackCopy);
 		short nextCharge = currentCharge - behavior->mChargePerStep;
 		Log::Info("[Networked] Uncharging item '{}' from {} to {}", storage->getOwner()->mFullName.getString(), currentCharge, nextCharge);
-		behavior->uncharge(mainHandStackCopy);
+		behavior->uncharge(stackCopy);
 	}
 
 	inventory.mInventory->createTransactionContext([](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
-	}, [&inventory, &mainHandStackCopy, &behavior] {
-		inventory.setSelectedItem(mainHandStackCopy);
+	}, [&inventory, &stackCopy, &behavior] {
+		inventory.setSelectedItem(stackCopy);
 	});
 }

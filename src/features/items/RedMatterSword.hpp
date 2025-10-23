@@ -2,7 +2,6 @@
 #include "mc/src/common/world/item/WeaponItem.hpp"
 #include "features/items/MatterSword.hpp"
 #include "features/items/Tiers.hpp"
-#include "features/items/behaviors/ModeItemBehavior.hpp"
 
 class RedMatterSword :
 	public MatterSword

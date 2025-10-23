@@ -1,4 +1,6 @@
 #include "features/behaviors/items/types/ChargeableItem.hpp"
+#include "features/behaviors/items/ItemBehaviorStorage.hpp"
+
 #include "amethyst/runtime/ModContext.hpp"
 
 #include "mc/src/common/world/level/Level.hpp"
@@ -112,4 +114,33 @@ void ChargeableItem::playUnchargeSound(short charge) {
 	float pitch = startPitch + (((float)charge / mMaxCharge) * (1.0f - startPitch));
 	if (player.isClientSide())
 		player.getLevel()->playSound("ui.item.uncharge", *player.getPosition(), 1.0f, pitch);
+}
+
+ChargeableItem* ChargeableItem::tryGet(const ItemStackBase& stack) {
+	auto* storage = ItemBehaviorStorage::tryGetStorage(stack);
+	if (!storage)
+		return nullptr;
+	return storage->getFirstBehavior<ChargeableItem>();
+}
+
+ChargeableItem* ChargeableItem::tryGet(Item* item) {
+	if (!item)
+		AssertFail("Item pointer was null");
+	auto* storage = ItemBehaviorStorage::tryGetStorage(*item);
+	if (!storage)
+		return nullptr;
+	return storage->getFirstBehavior<ChargeableItem>();
+}
+
+const ChargeableItem* ChargeableItem::tryGet(const Item* item) {
+	if (!item)
+		AssertFail("Item pointer was null");
+	auto* storage = ItemBehaviorStorage::tryGetStorage(*item);
+	if (!storage)
+		return nullptr;
+	return storage->getFirstBehavior<ChargeableItem>();
+}
+
+ChargeableItem* ChargeableItem::tryGet(ItemBehaviorStorage* storage) {
+	return storage->getFirstBehavior<ChargeableItem>();
 }

@@ -1,12 +1,14 @@
 #include "features/items/MatterPickaxe.hpp"
 #include "features/utility/BlockUtils.hpp"
+#include "features/behaviors/items/types/ModeItem.hpp"
+
 #include <format>
+
 #include "amethyst/runtime/ModContext.hpp"
+
 #include "mc/src/common/locale/I18n.hpp"
 #include "mc/src/common/world/level/BlockSource.hpp"
 #include "mc/src-client/common/client/gui/gui/GuiData.hpp"
-
-#include "features/behaviors/items/types/ChargeableItem.hpp"
 
 MatterPickaxe::MatterPickaxe(const std::string& name, short id, const Item::Tier& tier) :
 	PickaxeItem(name, id, tier),
@@ -20,14 +22,18 @@ bool MatterPickaxe::isDamageable() const {
 
 void MatterPickaxe::appendFormattedHovertext(const ItemStackBase& stack, Level& level, std::string& outText, bool showCategory) const {
 	PickaxeItem::appendFormattedHovertext(stack, level, outText, showCategory);
-
-	/*size_t currentMode = getMode(stack);
-	std::string modeNameKey = std::format("hover.ee2:{}.text", getModeName(currentMode));
-	outText += std::format("\n§f{}: §b{}§r", "hover.ee2:mode.text"_i18n, getI18n().get(modeNameKey, nullptr));*/
+	if (auto* modeBehavior = ModeItem::tryGet(stack)) {
+		size_t mode = modeBehavior->getMode(stack);
+		outText += ("\n" + modeBehavior->getModeDescription(mode));
+	}
 }
 
 std::vector<std::pair<BlockPos, const Block*>> MatterPickaxe::getBlocksForMode(const ItemStackBase& stack, BlockSource& region, const BlockPos& center, const Directions& directions) {
-	/*size_t mode = getMode(stack);
+	auto* modeBehavior = ModeItem::tryGet(stack);
+	if (!modeBehavior)
+		return {};
+	size_t mode = modeBehavior->getMode(stack);
+
 	auto blocks = BlockUtils::getBlocksForMode(mode, region, center, directions);
 	for (auto it = blocks.begin(); it != blocks.end();) {
 		if (!stack.canDestroyOptimally(*it->second)) {
@@ -37,6 +43,5 @@ std::vector<std::pair<BlockPos, const Block*>> MatterPickaxe::getBlocksForMode(c
 			++it;
 		}
 	}
-	return blocks;*/
-	return {};
+	return blocks;
 }

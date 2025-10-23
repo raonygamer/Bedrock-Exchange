@@ -16,42 +16,37 @@
 #include "mc/src/common/world/actor/player/Player.hpp"
 #include "mc/src/common/world/entity/components/ActorUniqueIDComponent.hpp"
 
-#include "features/items/behaviors/ModeItemBehavior.hpp"
+#include "features/behaviors/items/types/ModeItem.hpp"
+#include "features/behaviors/items/ItemBehaviorStorage.hpp"
 #include "features/networking/SwitchItemModePacket.hpp"
 
 void ModeItemInputs::Initialize(RegisterInputsEvent& event, AmethystContext& ctx) {
 	event.inputManager.RegisterNewInput("ee2.switch_item_mode", { 'G' }, true).addButtonDownHandler(&SwitchToNextMode);
 }
 
-std::tuple<const ItemStack*, ModeItemBehavior*, PlayerInventory*> ModeItemInputs::GetMainHandModeItem(ClientInstance& client) {
+Amethyst::InputPassthrough ModeItemInputs::SwitchToNextMode(FocusImpact focus, ClientInstance& client) {
 	LocalPlayer& player = *client.getLocalPlayer();
 	PlayerInventory& inventory = player.getSupplies();
-	const ItemStack& mainhandStack = inventory.getSelectedItem();
+	const ItemStack& stack = inventory.getSelectedItem();
 
-	if (!mainhandStack || mainhandStack.isNull() || !mainhandStack.getItem()->hasTag("ee2:switch_mode_item"))
-		return { nullptr, nullptr, nullptr };
+	auto* storage = ItemBehaviorStorage::tryGetStorage(stack);
+	if (!storage)
+		return Amethyst::InputPassthrough::Passthrough;
 
-	ModeItemBehavior* behavior = dynamic_cast<ModeItemBehavior*>(mainhandStack.getItem());
+	auto* behavior = storage->getFirstBehavior<ModeItem>();
 	if (!behavior)
-		AssertFail("Item has ee2:switch_mode_item tag but is not a ModeItemBehavior");
-	return { &mainhandStack, behavior, &inventory };
-}
-
-Amethyst::InputPassthrough ModeItemInputs::SwitchToNextMode(FocusImpact focus, ClientInstance& client) {
-	const auto [stack, behavior, inventory] = GetMainHandModeItem(client);
-	if (!stack || !behavior || !inventory)
 		return Amethyst::InputPassthrough::Passthrough;
 
 	Level& level = *client.getLocalPlayer()->getLevel()->asLevel();
 	PacketSender& packetSender = *level.mPacketSender;
 
-	ItemStack mainHandStackCopy = *stack;
-	behavior->nextMode(mainHandStackCopy);
+	ItemStack stackCopy = stack;
+	behavior->nextMode(stackCopy);
 
-	inventory->mInventory->createTransactionContext([&packetSender, &behavior](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
+	inventory.mInventory->createTransactionContext([&packetSender, &behavior](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
 		Amethyst::GetNetworkManager().SendToServer(packetSender, std::make_unique<SwitchItemModePacket>(behavior->getMode(to)));
-	}, [&inventory, &mainHandStackCopy, &behavior] {
-		inventory->setSelectedItem(mainHandStackCopy);
+	}, [&inventory, &stackCopy, &behavior] {
+		inventory.setSelectedItem(stackCopy);
 	});
 	return Amethyst::InputPassthrough::Consume;
 }

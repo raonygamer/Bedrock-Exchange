@@ -1,7 +1,6 @@
 #pragma once
 #include "mc/src/common/world/item/HatchetItem.hpp"
 #include "features/behaviors/items/ItemBehaviorStorage.hpp"
-#include "features/items/behaviors/ModeItemBehavior.hpp"
 
 class Directions;
 class MatterAxe :

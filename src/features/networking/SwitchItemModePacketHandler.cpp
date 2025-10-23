@@ -1,4 +1,7 @@
 #include "features/networking/SwitchItemModePacketHandler.hpp"
+#include "features/networking/SwitchItemModePacket.hpp"
+#include "features/behaviors/items/ItemBehaviorStorage.hpp"
+#include "features/behaviors/items/types/ModeItem.hpp"
 
 #include "mc/src/common/network/packet/Packet.hpp"
 #include "mc/src/common/network/PacketHandlerDispatcherInstance.hpp"
@@ -8,9 +11,6 @@
 #include "mc/src/common/world/actor/player/Inventory.hpp"
 #include "mc/src/common/world/containers/models/ContainerModel.hpp"
 #include "mc/src/common/world/inventory/FillingContainer.hpp"
-
-#include "features/items/behaviors/ModeItemBehavior.hpp"
-#include "features/networking/SwitchItemModePacket.hpp"
 
 void SwitchItemModePacketHandler::handle(const NetworkIdentifier& networkId, NetEventCallback& netEvent, const Amethyst::CustomPacket& _packet) const {
 	ServerNetworkHandler& serverNetwork = (ServerNetworkHandler&)netEvent;
@@ -22,28 +22,31 @@ void SwitchItemModePacketHandler::handle(const NetworkIdentifier& networkId, Net
 	}
 
 	PlayerInventory& inventory = serverPlayer->getSupplies();
-	const ItemStack& mainhandStack = inventory.getSelectedItem();
-
-	if (!mainhandStack || mainhandStack.isNull() || !mainhandStack.getItem()->hasTag("ee2:switch_mode_item"))
+	const ItemStack& stack = inventory.getSelectedItem();
+	if (!stack || stack.isNull())
 		return;
 
-	ModeItemBehavior* behavior = dynamic_cast<ModeItemBehavior*>(mainhandStack.getItem());
-	if (!behavior)
-		AssertFail("Item has ee2:switch_mode_item tag but is not a ModeItemBehavior");
+	auto* storage = ItemBehaviorStorage::tryGetStorage(stack);
+	if (!storage)
+		return;
 
-	ItemStack mainHandStackCopy = mainhandStack;
+	auto* behavior = storage->getFirstBehavior<ModeItem>();
+	if (!behavior)
+		return;
+
+	ItemStack stackCopy = stack;
 	const SwitchItemModePacket& packet = static_cast<const SwitchItemModePacket&>(_packet);
 	
 	if (packet.mMode >= behavior->mModes.size()) {
-		Log::Info("SwitchItemModePacketHandler: Invalid mode {} for item '{}'", packet.mMode, behavior->mItem->mFullName.getString());
+		Log::Info("SwitchItemModePacketHandler: Invalid mode {} for item '{}'", packet.mMode, storage->getOwner()->mFullName.getString());
 		return;
 	}
 
-	Log::Info("[Networked] Switching item '{}' to mode '{}'", behavior->mItem->mFullName.getString(), behavior->getModeName(packet.mMode));
-	behavior->setMode(mainHandStackCopy, packet.mMode);
+	Log::Info("[Networked] Switching item '{}' to mode '{}'", storage->getOwner()->mFullName.getString(), behavior->getModeName(packet.mMode));
+	behavior->setMode(stackCopy, packet.mMode);
 
 	inventory.mInventory->createTransactionContext([](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
-	}, [&inventory, &mainHandStackCopy, &behavior] {
-		inventory.setSelectedItem(mainHandStackCopy);
+	}, [&inventory, &stackCopy, &behavior] {
+		inventory.setSelectedItem(stackCopy);
 	});
 }

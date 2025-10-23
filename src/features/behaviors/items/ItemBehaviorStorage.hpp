@@ -13,4 +13,8 @@ public:
 	virtual std::type_index getTypeIndex() const override;
 
 	Item* getOwner() const;
+
+	static ItemBehaviorStorage* tryGetStorage(const ItemStackBase& stack);
+	static ItemBehaviorStorage* tryGetStorage(Item& item);
+	static const ItemBehaviorStorage* tryGetStorage(const Item& item);
 };

@@ -7,6 +7,7 @@
 #include "features/items/MatterShovel.hpp"
 #include "features/items/RedMatterSword.hpp"
 #include "features/behaviors/items/types/ChargeableItem.hpp"
+#include "features/behaviors/items/types/ModeItem.hpp"
 #include "features/ModGlobals.hpp"
 
 #include "mc/src-client/common/client/game/ClientInstance.hpp"
@@ -58,7 +59,7 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 	// Philosopher's Stone
 	{
 		auto item = event.itemRegistry.registerItemShared<BasicBehaviorItem>("ee2:philosophers_stone", ++event.itemRegistry.mMaxItemID);
-		item->addBehavior<ChargeableItem>(4, 4, 0, false);
+		item->addBehavior<ChargeableItem>(4, 4);
 		item->setIconInfo("ee2:philosophers_stone", 0)
 			.setMaxStackSize(1);
 		item->mCreativeCategory = CreativeItemCategory::Items;
@@ -137,7 +138,7 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			*ee2::Tiers::DARK_MATTER,
 			13
 		);
-		item->addBehavior<ChargeableItem>(2, 2, 0, false);
+		item->addBehavior<ChargeableItem>(2, 2);
 		item->setIconInfo("ee2:dark_matter_sword", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterSword = item;
@@ -150,7 +151,15 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			++event.itemRegistry.mMaxItemID,
 			*ee2::Tiers::DARK_MATTER
 		);
-		item->addBehavior<ChargeableItem>(2, 2, 0, false);
+		item->addBehavior<ChargeableItem>(2, 2);
+		item->addBehavior<ModeItem>(std::vector<std::string> { 
+			"mode.standard", 
+			"mode.3x_tallshot", 
+			"mode.3x_wideshot", 
+			"mode.3x_longshot",
+			"mode.3x_plate",
+			"mode.veinminer"
+		});
 		item->setIconInfo("ee2:dark_matter_pickaxe", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterPickaxe = item;
@@ -163,7 +172,11 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			++event.itemRegistry.mMaxItemID,
 			*ee2::Tiers::DARK_MATTER
 		);
-		item->addBehavior<ChargeableItem>(2, 2, 0, false);
+		item->addBehavior<ChargeableItem>(2, 2);
+		item->addBehavior<ModeItem>(std::vector<std::string> {
+			"mode.standard",
+			"mode.multi_chop"
+		});
 		item->setIconInfo("ee2:dark_matter_axe", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterAxe = item;
@@ -176,7 +189,14 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			++event.itemRegistry.mMaxItemID,
 			*ee2::Tiers::DARK_MATTER
 		);
-		item->addBehavior<ChargeableItem>(2, 2, 0, false);
+		item->addBehavior<ChargeableItem>(2, 2);
+		item->addBehavior<ModeItem>(std::vector<std::string> {
+			"mode.standard",
+			"mode.3x_tallshot",
+			"mode.3x_wideshot",
+			"mode.3x_longshot",
+			"mode.3x_plate"
+		});
 		item->setIconInfo("ee2:dark_matter_shovel", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterShovel = item;
@@ -188,7 +208,7 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			"ee2:red_matter_sword",
 			++event.itemRegistry.mMaxItemID
 		);
-		item->addBehavior<ChargeableItem>(3, 3, 0, false);
+		item->addBehavior<ChargeableItem>(3, 3);
 		item->setIconInfo("ee2:red_matter_sword", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		RedMatterSword = item;

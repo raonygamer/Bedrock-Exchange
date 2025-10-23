@@ -53,6 +53,8 @@ public:
 	void addEventListener(const std::function<bool(T*)>& listener) {
 		auto& type = typeid(T);
 		mEventListeners[type].push_back([listener](Event* event) -> bool {
+			if (!event)
+				AssertFail("Event pointer was null.");
 			if (auto castedEvent = dynamic_cast<T*>(event))
 				return listener(castedEvent);
 			AssertFail("Failed to cast event '{}' to '{}'.", event->getTypeIndex().name(), typeid(T).name());

@@ -10,7 +10,8 @@
 #include "mc/src/common/world/inventory/FillingContainer.hpp"
 #include "mc/src-client/common/client/player/LocalPlayer.hpp"
 
-#include "features/items/behaviors/ChargeableItemBehavior.hpp"
+#include "features/behaviors/items/types/ChargeableItem.hpp"
+#include "features/behaviors/items/ItemBehaviorStorage.hpp"
 #include "features/networking/UpdateItemChargePacket.hpp"
 
 #include "amethyst/runtime/networking/NetworkManager.hpp"
@@ -21,17 +22,22 @@ void ChargeableItemInputs::Initialize(RegisterInputsEvent& event, AmethystContex
 	event.inputManager.RegisterNewInput("ee2.uncharge_item", { 'U' }, true).addButtonDownHandler(&UnchargeItem);
 }
 
-std::tuple<const ItemStack*, ChargeableItemBehavior*, PlayerInventory*> ChargeableItemInputs::GetMainHandChargeableItem(ClientInstance& client) {
+std::tuple<const ItemStack*, ChargeableItem*, PlayerInventory*> ChargeableItemInputs::GetMainHandChargeableItem(ClientInstance& client) {
 	LocalPlayer& player = *client.getLocalPlayer();
 	PlayerInventory& inventory = player.getSupplies();
 	const ItemStack& mainhandStack = inventory.getSelectedItem();
 
-	if (!mainhandStack || mainhandStack.isNull() || !mainhandStack.getItem()->hasTag("ee2:chargeable_item"))
+	if (!mainhandStack || mainhandStack.isNull())
 		return { nullptr, nullptr, nullptr };
 
-	ChargeableItemBehavior* behavior = dynamic_cast<ChargeableItemBehavior*>(mainhandStack.getItem());
+	ItemBehaviorStorage* storage = BehaviorStorage::getForItem(*mainhandStack.getItem());
+	if (!storage)
+		return { nullptr, nullptr, nullptr };
+
+	ChargeableItem* behavior = storage->getFirstBehavior<ChargeableItem>();
 	if (!behavior)
-		AssertFail("Item has ee2:chargeable_item tag but is not a ChargeableItemBehavior");
+		return { nullptr, nullptr, nullptr };
+
 	return { &mainhandStack, behavior, &inventory };
 }
 

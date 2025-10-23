@@ -3,7 +3,10 @@
 #include "features/items/AlchemicalBagItem.hpp"
 #include "features/items/MatterSword.hpp"
 #include "features/items/MatterPickaxe.hpp"
+#include "features/items/MatterAxe.hpp"
+#include "features/items/MatterShovel.hpp"
 #include "features/items/RedMatterSword.hpp"
+#include "features/behaviors/items/types/ChargeableItem.hpp"
 #include "features/ModGlobals.hpp"
 
 #include "mc/src-client/common/client/game/ClientInstance.hpp"
@@ -14,7 +17,7 @@
 
 ItemRegistry* Items::ItemRegistry = nullptr;
 std::unordered_map<std::string, WeakPtr<AlchemicalBagItem>> Items::AlchemicalBags = {};
-WeakPtr<BasicChargeableItem> Items::PhilosophersStone = nullptr;
+WeakPtr<Item> Items::PhilosophersStone = nullptr;
 WeakPtr<Item> Items::AlchemicalCoal = nullptr;
 WeakPtr<Item> Items::MobiusFuel = nullptr;
 WeakPtr<Item> Items::AeternalisFuel = nullptr;
@@ -25,12 +28,25 @@ WeakPtr<Item> Items::DarkMatter = nullptr;
 WeakPtr<Item> Items::RedMatter = nullptr;
 WeakPtr<Item> Items::DarkMatterSword = nullptr;
 WeakPtr<Item> Items::DarkMatterPickaxe = nullptr;
+WeakPtr<Item> Items::DarkMatterAxe = nullptr;
+WeakPtr<Item> Items::DarkMatterShovel = nullptr;
 WeakPtr<Item> Items::RedMatterSword = nullptr;
 
 void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 {
 	ItemRegistry = &event.itemRegistry;
-	auto* item = ItemRegistry->mNameToItemMap["minecraft:diamond_pickaxe"].get();
+	{
+		auto* item = ItemRegistry->mNameToItemMap["minecraft:diamond_shovel"].get();
+		Log::Info("Diamond Shovel Item Ptr: {:x}", GetVtable(item) - GetMinecraftBaseAddress());
+	}
+	{
+		auto* item = ItemRegistry->mNameToItemMap["minecraft:diamond_hoe"].get();
+		Log::Info("Diamond Hoe Item Ptr: {:x}", GetVtable(item) - GetMinecraftBaseAddress());
+	}
+	{
+		auto* item = ItemRegistry->mNameToItemMap["minecraft:shears"].get();
+		Log::Info("Shears Item Ptr: {:x}", GetVtable(item) - GetMinecraftBaseAddress());
+	}
 
 	// Alchemical Bags
 	for (const std::string& color : ModGlobals::AlchemicalBagColors) {
@@ -41,7 +57,8 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 
 	// Philosopher's Stone
 	{
-		auto item = event.itemRegistry.registerItemShared<BasicChargeableItem>("ee2:philosophers_stone", ++event.itemRegistry.mMaxItemID, 4, 4);
+		auto item = event.itemRegistry.registerItemShared<BasicBehaviorItem>("ee2:philosophers_stone", ++event.itemRegistry.mMaxItemID);
+		item->addBehavior<ChargeableItem>(4, 4, 0, false);
 		item->setIconInfo("ee2:philosophers_stone", 0)
 			.setMaxStackSize(1);
 		item->mCreativeCategory = CreativeItemCategory::Items;
@@ -118,10 +135,9 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			"ee2:dark_matter_sword",
 			++event.itemRegistry.mMaxItemID,
 			*ee2::Tiers::DARK_MATTER,
-			13,
-			2,
-			2
+			13
 		);
+		item->addBehavior<ChargeableItem>(2, 2, 0, false);
 		item->setIconInfo("ee2:dark_matter_sword", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterSword = item;
@@ -132,16 +148,38 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 		auto item = event.itemRegistry.registerItemShared<MatterPickaxe>(
 			"ee2:dark_matter_pickaxe",
 			++event.itemRegistry.mMaxItemID,
-			*ee2::Tiers::DARK_MATTER,
-			2,
-			2,
-			0,
-			std::vector<std::string> { "mode.standard", "mode.3x_tallshot", "mode.3x_wideshot", "mode.3x_longshot" },
-			0
+			*ee2::Tiers::DARK_MATTER
 		);
+		item->addBehavior<ChargeableItem>(2, 2, 0, false);
 		item->setIconInfo("ee2:dark_matter_pickaxe", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterPickaxe = item;
+	}
+
+	// Dark Matter Axe
+	{
+		auto item = event.itemRegistry.registerItemShared<MatterAxe>(
+			"ee2:dark_matter_axe",
+			++event.itemRegistry.mMaxItemID,
+			*ee2::Tiers::DARK_MATTER
+		);
+		item->addBehavior<ChargeableItem>(2, 2, 0, false);
+		item->setIconInfo("ee2:dark_matter_axe", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		DarkMatterAxe = item;
+	}
+
+	// Dark Matter Shovel
+	{
+		auto item = event.itemRegistry.registerItemShared<MatterShovel>(
+			"ee2:dark_matter_shovel",
+			++event.itemRegistry.mMaxItemID,
+			*ee2::Tiers::DARK_MATTER
+		);
+		item->addBehavior<ChargeableItem>(2, 2, 0, false);
+		item->setIconInfo("ee2:dark_matter_shovel", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		DarkMatterShovel = item;
 	}
 
 	// Red Matter Sword
@@ -150,6 +188,7 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			"ee2:red_matter_sword",
 			++event.itemRegistry.mMaxItemID
 		);
+		item->addBehavior<ChargeableItem>(3, 3, 0, false);
 		item->setIconInfo("ee2:red_matter_sword", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		RedMatterSword = item;

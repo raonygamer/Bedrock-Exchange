@@ -6,7 +6,9 @@
 #include "features/emc/EMCUtils.hpp"
 #include "features/items/Items.hpp"
 #include "features/items/MatterPickaxe.hpp"
-#include "features/items/behaviors/ChargeableItemBehavior.hpp"
+#include "features/items/MatterAxe.hpp"
+#include "features/items/MatterShovel.hpp"
+#include "features/behaviors/items/types/ChargeableItem.hpp"
 #include "features/items/behaviors/ModeItemBehavior.hpp"
 #include "features/blocks/Blocks.hpp"
 #include "features/blocks/actor/AlchemicalChestBlockActor.hpp"
@@ -35,6 +37,8 @@
 #include "mc/src/common/world/level/block/Block.hpp"
 #include "mc/src/common/world/inventory/transaction/ItemUseInventoryTransaction.hpp"
 #include "mc/src/common/world/gamemode/GameMode.hpp"
+#include "mc/src/common/world/item/registry/CreativeItemRegistry.hpp"
+#include "mc/src/common/world/item/registry/CreativeGroupInfo.hpp"
 #include "mc/src/common/Minecraft.hpp"
 #include "mc/src-client/common/client/renderer/blockActor/ChestRenderer.hpp"
 #include "mc/src-client/common/client/gui/screens/controllers/HudScreenController.hpp"
@@ -57,6 +61,7 @@ Amethyst::InlineHook<decltype(&ContainerValidatorFactory::getBackingContainer)> 
 Amethyst::InlineHook<decltype(&BlockActorFactory::createBlockEntity)> _BlockActorFactory_createBlockEntity;
 Amethyst::InlineHook<decltype(&Item::appendFormattedHovertext)> _Item_appendFormattedHovertext;
 Amethyst::InlineHook<decltype(&VanillaItems::_addItemsCategory)> _VanillaItems__addItemsCategory;
+Amethyst::InlineHook<decltype(&VanillaItems::_addEquipmentCategory)> _VanillaItems__addEquipmentCategory;
 Amethyst::InlineHook<decltype(&ContainerScreenController::_registerBindings)> _ContainerScreenController__registerBindings;
 Amethyst::InlineHook<decltype(&HudScreenController::$constructor)> _HudScreenController_$constructor;
 Amethyst::InlineHook<decltype(Amethyst::OverloadCast<bool(HudScreenController::*)(const std::string&, uint32_t, int, const std::string&, uint32_t, const std::string&, UIPropertyBag&)>(&HudScreenController::bind))> _HudScreenController_bind;
@@ -183,13 +188,14 @@ void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, 
     Item::addCreativeItem(registry, *Blocks::DarkMatterFurnaceBlock->mDefaultState);
 }
 
-static ChargeableItemBehavior* getChargeableItem(const ItemStackBase& stack) {
+static ChargeableItem* getChargeableItem(const ItemStackBase& stack) {
     if (stack.isNull())
-        return nullptr;
-    Item* item = stack.getItem();
-    if (!item->hasTag("ee2:chargeable_item"))
-        return nullptr;
-    return dynamic_cast<ChargeableItemBehavior*>(item);
+		return nullptr;
+	Item* item = stack.getItem();
+	ItemBehaviorStorage* storage = BehaviorStorage::getForItem(*item);
+	if (!storage)
+		return nullptr;
+	return storage->getFirstBehavior<ChargeableItem>();
 };
 
 static ModeItemBehavior* getModeItem(const ItemStackBase& stack) {
@@ -205,7 +211,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     _ContainerScreenController__registerBindings(self);
     self->bindBoolForAnyCollection("#item_charge_visible", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
-        ChargeableItemBehavior* behavior = getChargeableItem(stack);
+        ChargeableItem* behavior = getChargeableItem(stack);
         if (!behavior)
             return false;
         return true;
@@ -217,7 +223,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     self->bindBool("#selected_item_charge_visible", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
-		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+		ChargeableItem* behavior = getChargeableItem(stack);
         if (behavior == nullptr)
             return false;
         return true;
@@ -228,7 +234,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
 
     self->bindFloatForAnyCollection("#item_charge_current_amount", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
-		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+		ChargeableItem* behavior = getChargeableItem(stack);
         if (!behavior)
             return 0.0f;
         return static_cast<float>(behavior->getCharge(stack));
@@ -239,7 +245,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     self->bindFloat("#selected_item_charge_current_amount", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
-		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+		ChargeableItem* behavior = getChargeableItem(stack);
         if (!behavior)
             return 0.0f;
         return static_cast<float>(behavior->getCharge(stack));
@@ -249,7 +255,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
 
     self->bindFloatForAnyCollection("#item_charge_total_amount", [self](const std::string& collection, int index) {
         const ItemStackBase& stack = self->_getVisualItemStack(collection, index);
-		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+		ChargeableItem* behavior = getChargeableItem(stack);
         if (!behavior)
             return 0.0f;
         return static_cast<float>(behavior->mMaxCharge);
@@ -260,7 +266,7 @@ void ContainerScreenController__registerBindings(ContainerScreenController* self
     self->bindFloat("#selected_item_charge_total_amount", [self]() {
         const ItemGroup& cursorItemGroup = self->mMinecraftScreenModel->getCursorSelectedItemGroup();
         const ItemStackBase& stack = cursorItemGroup.getItemInstance();
-		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+		ChargeableItem* behavior = getChargeableItem(stack);
         if (!behavior)
             return 0.0f;
         return static_cast<float>(behavior->mMaxCharge);
@@ -285,7 +291,7 @@ bool HudScreenController_bind(
 
     if (bindingNameHash == itemChargeVisibleHash) {
         const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
-		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+		ChargeableItem* behavior = getChargeableItem(stack);
 		bool value = false;
         if (behavior)
             value = true;
@@ -294,7 +300,7 @@ bool HudScreenController_bind(
     }
     else if (bindingNameHash == itemChargeCurrentHash) {
         const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
-		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+		ChargeableItem* behavior = getChargeableItem(stack);
 		float value = 0.0f;
         if (behavior)
 			value = static_cast<float>(behavior->getCharge(stack));
@@ -303,7 +309,7 @@ bool HudScreenController_bind(
     }
     else if (bindingNameHash == itemChargeTotalHash) {
         const ItemStack& stack = self->mHudScreenManagerController->getItemStack(collectionName, collectionIndex);
-		ChargeableItemBehavior* behavior = getChargeableItem(stack);
+		ChargeableItem* behavior = getChargeableItem(stack);
 		float value = 0.0f;
 		if (behavior)
             value = static_cast<float>(behavior->mMaxCharge);
@@ -341,8 +347,9 @@ void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screen
 	if (mainhandStack.isNull())
 		return;
 
+	std::vector<std::pair<BlockPos, const Block*>> blocks;
 	if (mainhandStack.mItem == Items::PhilosophersStone) {
-		ChargeableItemBehavior* behavior = getChargeableItem(mainhandStack);
+		ChargeableItem* behavior = getChargeableItem(mainhandStack);
 		if (!behavior)
 			return;
 
@@ -350,15 +357,16 @@ void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screen
 		int radius = std::clamp(charge, 0, 12);
 		int maxBlocks = std::min(1000, (2 * radius + 1) * (2 * radius + 1) * (2 * radius + 1));
 		
-		std::vector<std::pair<BlockPos, const Block*>> blocks = BlockUtils::floodFillBlocks(region, hitRes.mBlock, region.getBlock(hitRes.mBlock).mLegacyBlock, radius, maxBlocks);
+		blocks = BlockUtils::floodFillBlocks(region, hitRes.mBlock, region.getBlock(hitRes.mBlock).mLegacyBlock, radius, maxBlocks);
 		for (const auto& [pos, block] : blocks) {
 			levelRendererPlayer._renderHighlightSelection(ctx, region, *block, pos, false, true);
 			levelRendererPlayer._renderOutlineSelection(screenContext, *block, region, pos);
 		}
+		return;
 	}
 	else if (mainhandStack.mItem == Items::DarkMatterPickaxe) {
-		MatterPickaxe* matterPickaxe = static_cast<MatterPickaxe*>(mainhandStack.mItem.get());
-		ChargeableItemBehavior* chargeBehavior = getChargeableItem(mainhandStack);
+		MatterPickaxe* item = static_cast<MatterPickaxe*>(mainhandStack.mItem.get());
+		ChargeableItem* chargeBehavior = getChargeableItem(mainhandStack);
 		ModeItemBehavior* modeBehavior = getModeItem(mainhandStack);
 		if (!chargeBehavior || !modeBehavior)
 			return;
@@ -367,37 +375,84 @@ void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screen
 		int charge = chargeBehavior->getCharge(mainhandStack);
 		if (charge < chargeBehavior->mMaxCharge)
 			return;
-		auto blocks = matterPickaxe->getBlocksForMode(mainhandStack, region, hitRes.mBlock, dirs);
-		for (const auto& [pos, block] : blocks) {
-			if (pos == hitRes.mBlock)
-				continue;
-			levelRendererPlayer.renderHitSelect(ctx, region, pos, true);
-		}
+		blocks = item->getBlocksForMode(mainhandStack, region, hitRes.mBlock, dirs);
+	}
+	else if (mainhandStack.mItem == Items::DarkMatterAxe) {
+		MatterAxe* item = static_cast<MatterAxe*>(mainhandStack.mItem.get());
+		ChargeableItem* chargeBehavior = getChargeableItem(mainhandStack);
+		ModeItemBehavior* modeBehavior = getModeItem(mainhandStack);
+		if (!chargeBehavior || !modeBehavior)
+			return;
+
+		Directions dirs = Directions::fromLookVec3(player.getHeadLookVector(1.0f));
+		int charge = chargeBehavior->getCharge(mainhandStack);
+		if (charge < chargeBehavior->mMaxCharge)
+			return;
+		blocks = item->getBlocksForMode(mainhandStack, region, hitRes.mBlock, dirs);
+	}
+	else if (mainhandStack.mItem == Items::DarkMatterShovel) {
+		MatterShovel* item = static_cast<MatterShovel*>(mainhandStack.mItem.get());
+		ChargeableItem* chargeBehavior = getChargeableItem(mainhandStack);
+		ModeItemBehavior* modeBehavior = getModeItem(mainhandStack);
+		if (!chargeBehavior || !modeBehavior)
+			return;
+
+		Directions dirs = Directions::fromLookVec3(player.getHeadLookVector(1.0f));
+		int charge = chargeBehavior->getCharge(mainhandStack);
+		if (charge < chargeBehavior->mMaxCharge)
+			return;
+		blocks = item->getBlocksForMode(mainhandStack, region, hitRes.mBlock, dirs);
+	}
+
+	for (const auto& [pos, block] : blocks) {
+		if (pos == hitRes.mBlock)
+			continue;
+		levelRendererPlayer.renderHitSelect(ctx, region, pos, true);
 	}
 }
 
 bool GameMode_destroyBlock(GameMode* self, const BlockPos& pos, FacingID face) {
-	auto result = _GameMode_destroyBlock(self, pos, face);
 	PlayerInventory& inventory = self->mPlayer.getSupplies();
 	const ItemStack& mainhandStack = inventory.getSelectedItem();
 
 	static HashedString matterPickaxeTag("ee2:dark_matter_pickaxe");
-	if (mainhandStack.isNull() || mainhandStack.mItem->mFullName != matterPickaxeTag)
-		return result;
+	static HashedString matterAxeTag("ee2:dark_matter_axe");
+	static HashedString matterShovelTag("ee2:dark_matter_shovel");
+	if (mainhandStack.isNull())
+		return _GameMode_destroyBlock(self, pos, face);
 
-	MatterPickaxe* pickaxe = static_cast<MatterPickaxe*>(mainhandStack.mItem.get());
-	if (pickaxe->getCharge(mainhandStack) < pickaxe->mMaxCharge)
-		return result;
-	
 	Directions dirs = Directions::fromLookVec3(self->mPlayer.getHeadLookVector(1.0f));
 	auto& region = self->mPlayer.getDimensionBlockSource();
-	auto blocks = pickaxe->getBlocksForMode(mainhandStack, region, pos, dirs);
+	std::vector<std::pair<BlockPos, const Block*>> blocks;
+	/*if (mainhandStack.mItem.get()->mFullName == matterPickaxeTag) {
+		MatterPickaxe* item = static_cast<MatterPickaxe*>(mainhandStack.mItem.get());
+		if (item->getCharge(mainhandStack) < item->mMaxCharge)
+			return _GameMode_destroyBlock(self, pos, face);
+		blocks = item->getBlocksForMode(mainhandStack, region, pos, dirs);
+	}
+	else if (mainhandStack.mItem.get()->mFullName == matterAxeTag) {
+		MatterAxe* item = static_cast<MatterAxe*>(mainhandStack.mItem.get());
+		if (item->getCharge(mainhandStack) < item->mMaxCharge)
+			return _GameMode_destroyBlock(self, pos, face);
+		blocks = item->getBlocksForMode(mainhandStack, region, pos, dirs);
+	}
+	else if (mainhandStack.mItem.get()->mFullName == matterShovelTag) {
+		MatterShovel* item = static_cast<MatterShovel*>(mainhandStack.mItem.get());
+		if (item->getCharge(mainhandStack) < item->mMaxCharge)
+			return _GameMode_destroyBlock(self, pos, face);
+		blocks = item->getBlocksForMode(mainhandStack, region, pos, dirs);
+	}
+	else {
+		return _GameMode_destroyBlock(self, pos, face);
+	}
+
+
 	for (const auto& [blockPos, block] : blocks) {
 		if (blockPos == pos)
 			continue;
 		_GameMode_destroyBlock(self, blockPos, face);
-	}
-	return result;
+	}*/
+	return _GameMode_destroyBlock(self, pos, face);
 }
 
 SafetyHookMid _Actor_calculateAttackDamage_additionalDmgExt;

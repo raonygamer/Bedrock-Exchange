@@ -5,8 +5,7 @@
 #include "features/items/behaviors/ModeItemBehavior.hpp"
 
 class RedMatterSword :
-	public MatterSword,
-	public ModeItemBehavior
+	public MatterSword
 {
 public:
 	RedMatterSword(const std::string& identifier, short numId);

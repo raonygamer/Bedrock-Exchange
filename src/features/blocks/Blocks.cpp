@@ -17,8 +17,10 @@ WeakPtr<BlockLegacy> Blocks::DarkMatterBlock = nullptr;
 WeakPtr<BlockLegacy> Blocks::RedMatterBlock = nullptr;
 WeakPtr<DarkMatterFurnaceBlock> Blocks::DarkMatterFurnaceBlock = nullptr;
 
+#pragma optimize("", off)
 void Blocks::RegisterAllBlocks(RegisterBlocksEvent& event, AmethystContext& ctx) {
 	auto& blockDefs = event.blockDefinitions;
+	auto& hayBlock = BlockTypeRegistry::mBlockLookupMap["minecraft:hay_block"];
 
 	// Alchemical Coal Block
 	{
@@ -69,6 +71,7 @@ void Blocks::RegisterAllBlocks(RegisterBlocksEvent& event, AmethystContext& ctx)
 		DarkMatterFurnaceBlock = block;
 	}
 }
+#pragma optimize("", on)
 
 void Blocks::InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext& ctx) {
 	// Alchemical Coal Block

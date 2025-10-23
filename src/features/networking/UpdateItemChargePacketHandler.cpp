@@ -9,7 +9,8 @@
 #include "mc/src/common/world/containers/models/ContainerModel.hpp"
 #include "mc/src/common/world/inventory/FillingContainer.hpp"
 
-#include "features/items/behaviors/ChargeableItemBehavior.hpp"
+#include "features/behaviors/items/types/ChargeableItem.hpp"
+#include "features/behaviors/items/ItemBehaviorStorage.hpp"
 #include "features/networking/UpdateItemChargePacket.hpp"
 
 void UpdateItemChargePacketHandler::handle(const NetworkIdentifier& networkId, NetEventCallback& netEvent, const Amethyst::CustomPacket& _packet) const {
@@ -24,12 +25,16 @@ void UpdateItemChargePacketHandler::handle(const NetworkIdentifier& networkId, N
 	PlayerInventory& inventory = serverPlayer->getSupplies();
 	const ItemStack& mainhandStack = inventory.getSelectedItem();
 
-	if (!mainhandStack || mainhandStack.isNull() || !mainhandStack.getItem()->hasTag("ee2:chargeable_item"))
+	if (!mainhandStack || mainhandStack.isNull()) 
 		return;
 
-	ChargeableItemBehavior* behavior = dynamic_cast<ChargeableItemBehavior*>(mainhandStack.getItem());
+	ItemBehaviorStorage* storage = BehaviorStorage::getForItem(*mainhandStack.getItem());
+	if (!storage)
+		return;
+
+	ChargeableItem* behavior = storage->getFirstBehavior<ChargeableItem>();
 	if (!behavior)
-		AssertFail("Item has ee2:chargeable_item tag but is not a ChargeableItemBehavior");
+		return;
 
 	ItemStack mainHandStackCopy = mainhandStack;
 
@@ -38,13 +43,13 @@ void UpdateItemChargePacketHandler::handle(const NetworkIdentifier& networkId, N
 	if (packet.mCharge) {
 		short currentCharge = behavior->getCharge(mainHandStackCopy);
 		short nextCharge = currentCharge + behavior->mChargePerStep;
-		Log::Info("[Networked] Charging item '{}' from {} to {}", behavior->mItem->mFullName.getString(), currentCharge, nextCharge);
+		Log::Info("[Networked] Charging item '{}' from {} to {}", storage->getOwner()->mFullName.getString(), currentCharge, nextCharge);
 		behavior->charge(mainHandStackCopy);
 	}
 	else {
 		short currentCharge = behavior->getCharge(mainHandStackCopy);
 		short nextCharge = currentCharge - behavior->mChargePerStep;
-		Log::Info("[Networked] Uncharging item '{}' from {} to {}", behavior->mItem->mFullName.getString(), currentCharge, nextCharge);
+		Log::Info("[Networked] Uncharging item '{}' from {} to {}", storage->getOwner()->mFullName.getString(), currentCharge, nextCharge);
 		behavior->uncharge(mainHandStackCopy);
 	}
 

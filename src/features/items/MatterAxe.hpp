@@ -1,15 +1,15 @@
 #pragma once
-#include "mc/src/common/world/item/PickaxeItem.hpp"
+#include "mc/src/common/world/item/HatchetItem.hpp"
 #include "features/behaviors/items/ItemBehaviorStorage.hpp"
 #include "features/items/behaviors/ModeItemBehavior.hpp"
 
 class Directions;
-class MatterPickaxe :
-	public PickaxeItem,
+class MatterAxe :
+	public HatchetItem,
 	public ItemBehaviorStorage
 {
 public:
-	MatterPickaxe(const std::string& name, short id, const Item::Tier& tier);
+	MatterAxe(const std::string& name, short id, const Item::Tier& tier);
 
 	virtual bool isDamageable() const override;
 	virtual void appendFormattedHovertext(const ItemStackBase& stack, Level& level, std::string& outText, bool showCategory) const override;

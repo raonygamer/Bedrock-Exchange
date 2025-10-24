@@ -15,9 +15,7 @@
 void SwitchItemModePacketHandler::handle(const NetworkIdentifier& networkId, NetEventCallback& netEvent, const Amethyst::CustomPacket& _packet) const {
 	ServerNetworkHandler& serverNetwork = (ServerNetworkHandler&)netEvent;
 	ServerPlayer* serverPlayer = serverNetwork._getServerPlayer(networkId, SubClientId::PrimaryClient);
-
 	if (serverPlayer == nullptr) {
-		Log::Info("SwitchItemModePacketHandler: ServerPlayer not found?");
 		return;
 	}
 
@@ -38,13 +36,10 @@ void SwitchItemModePacketHandler::handle(const NetworkIdentifier& networkId, Net
 	const SwitchItemModePacket& packet = static_cast<const SwitchItemModePacket&>(_packet);
 	
 	if (packet.mMode >= behavior->mModes.size()) {
-		Log::Info("SwitchItemModePacketHandler: Invalid mode {} for item '{}'", packet.mMode, storage->getOwner()->mFullName.getString());
 		return;
 	}
 
-	Log::Info("[Networked] Switching item '{}' to mode '{}'", storage->getOwner()->mFullName.getString(), behavior->getModeName(packet.mMode));
 	behavior->setMode(stackCopy, packet.mMode);
-
 	inventory.mInventory->createTransactionContext([](Container& container, int slot, ItemStack const& from, ItemStack const& to) {
 	}, [&inventory, &stackCopy, &behavior] {
 		inventory.setSelectedItem(stackCopy);

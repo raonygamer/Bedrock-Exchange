@@ -5,7 +5,6 @@
 ItemBehavior::ItemBehavior(BehaviorStorage* owner) :
 	Behavior(owner)
 {
-	Log::Info("{} -> {}", owner->getTypeIndex().name(), typeid(ItemBehaviorStorage).name());
 	if (owner->getTypeIndex() != typeid(ItemBehaviorStorage)) {
 		AssertFail("ItemBehavior can only be attached to ItemBehaviorStorage, but got '{}'.", owner->getTypeIndex().name());
 	}

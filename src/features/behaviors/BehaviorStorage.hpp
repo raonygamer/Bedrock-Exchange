@@ -79,4 +79,27 @@ public:
 	void removeBehavior(T* behavior) {
 		removeBehavior(static_cast<Behavior*>(behavior));
 	}
+
+	template<typename T>
+	std::vector<T*> getBehaviorsOfBase() const {
+		std::vector<T*> result;
+		for (auto& [type, vec] : mBehaviors) {
+			for (auto& b : vec) {
+				if (auto ptr = dynamic_cast<T*>(b.get()))
+					result.push_back(ptr);
+			}
+		}
+		return result;
+	}
+
+	template<typename T>
+	T* getFirstBehaviorOfBase() const {
+		for (auto& [type, vec] : mBehaviors) {
+			for (auto& b : vec) {
+				if (auto ptr = dynamic_cast<T*>(b.get()))
+					return ptr;
+			}
+		}
+		return nullptr;
+	}
 };

@@ -28,20 +28,3 @@ void MatterShovel::appendFormattedHovertext(const ItemStackBase& stack, Level& l
 		outText += ("\n" + modeBehavior->getModeDescription(mode));
 	}
 }
-
-std::vector<std::pair<BlockPos, const Block*>> MatterShovel::getBlocksForMode(const ItemStackBase& stack, BlockSource& region, const BlockPos& center, const Directions& directions) const {
-	auto* modeBehavior = ModeItem::tryGet(stack);
-	if (!modeBehavior)
-		return {};
-	size_t mode = modeBehavior->getMode(stack);
-
-	auto blocks = BlockUtils::getBlocksForMode(mode, region, center, directions);
-	for (auto it = blocks.begin(); it != blocks.end();) {
-		if (!stack.canDestroyOptimally(*it->second)) {
-			it = blocks.erase(it);
-		} else {
-			++it;
-		}
-	}
-	return blocks;
-}

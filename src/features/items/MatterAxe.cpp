@@ -27,22 +27,3 @@ void MatterAxe::appendFormattedHovertext(const ItemStackBase& stack, Level& leve
 		outText += ("\n" + modeBehavior->getModeDescription(mode));
 	}
 }
-
-std::vector<std::pair<BlockPos, const Block*>> MatterAxe::getBlocksForMode(const ItemStackBase& stack, BlockSource& region, const BlockPos& center, const Directions& directions) {
-	auto* modeBehavior = ModeItem::tryGet(stack);
-	if (!modeBehavior)
-		return {};
-	size_t mode = modeBehavior->getMode(stack);
-
-	const Block& targetBlock = region.getBlock(center);
-	if (!targetBlock.mLegacyBlock)
-		return {};
-
-	// Tree Chopper
-	if (mode == 1) {
-		if (targetBlock.mLegacyBlock->mTags.end() != std::find(targetBlock.mLegacyBlock->mTags.begin(), targetBlock.mLegacyBlock->mTags.end(), "wood")) {
-			return BlockUtils::floodFillBlocks(region, center, targetBlock.mLegacyBlock, 32, 100);
-		}
-	}
-	return {};
-}

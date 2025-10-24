@@ -5,9 +5,15 @@
 #include "features/items/MatterPickaxe.hpp"
 #include "features/items/MatterAxe.hpp"
 #include "features/items/MatterShovel.hpp"
+#include "features/items/MatterHoe.hpp"
+#include "features/items/MatterShears.hpp"
 #include "features/items/RedMatterSword.hpp"
 #include "features/behaviors/items/types/ChargeableItem.hpp"
 #include "features/behaviors/items/types/ModeItem.hpp"
+#include "features/behaviors/items/types/area/MatterPickaxeAreaToolItem.hpp"
+#include "features/behaviors/items/types/area/MatterShovelAreaToolItem.hpp"
+#include "features/behaviors/items/types/area/MatterAxeAreaToolItem.hpp"
+#include "features/behaviors/items/types/area/MatterHoeAreaToolItem.hpp"
 #include "features/ModGlobals.hpp"
 
 #include "mc/src-client/common/client/game/ClientInstance.hpp"
@@ -31,6 +37,8 @@ WeakPtr<Item> Items::DarkMatterSword = nullptr;
 WeakPtr<Item> Items::DarkMatterPickaxe = nullptr;
 WeakPtr<Item> Items::DarkMatterAxe = nullptr;
 WeakPtr<Item> Items::DarkMatterShovel = nullptr;
+WeakPtr<Item> Items::DarkMatterHoe = nullptr;
+WeakPtr<Item> Items::DarkMatterShears = nullptr;
 WeakPtr<Item> Items::RedMatterSword = nullptr;
 
 void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
@@ -160,6 +168,7 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			"mode.3x_plate",
 			"mode.veinminer"
 		});
+		item->addBehavior<MatterPickaxeAreaToolItem>();
 		item->setIconInfo("ee2:dark_matter_pickaxe", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterPickaxe = item;
@@ -177,6 +186,7 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			"mode.standard",
 			"mode.multi_chop"
 		});
+		item->addBehavior<MatterAxeAreaToolItem>();
 		item->setIconInfo("ee2:dark_matter_axe", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterAxe = item;
@@ -197,9 +207,42 @@ void Items::RegisterAllItems(RegisterItemsEvent& event, AmethystContext& ctx)
 			"mode.3x_longshot",
 			"mode.3x_plate"
 		});
+		item->addBehavior<MatterShovelAreaToolItem>();
 		item->setIconInfo("ee2:dark_matter_shovel", 0);
 		item->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterShovel = item;
+	}
+
+	// Dark Matter Hoe
+	{
+		auto item = event.itemRegistry.registerItemShared<MatterHoe>(
+			"ee2:dark_matter_hoe",
+			++event.itemRegistry.mMaxItemID,
+			*ee2::Tiers::DARK_MATTER
+		);
+		item->addBehavior<ChargeableItem>(2, 2);
+		item->addBehavior<ModeItem>(std::vector<std::string> {
+			"mode.standard",
+			"mode.multi_harvest",
+			"mode.5x_plane"
+		});
+		item->addBehavior<MatterHoeAreaToolItem>();
+		item->setIconInfo("ee2:dark_matter_hoe", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		DarkMatterHoe = item;
+	}
+
+	// Dark Matter Shears
+	{
+		auto item = event.itemRegistry.registerItemShared<MatterShears>(
+			"ee2:dark_matter_shears",
+			++event.itemRegistry.mMaxItemID,
+			*ee2::Tiers::DARK_MATTER
+		);
+		item->addBehavior<ChargeableItem>(2, 2);
+		item->setIconInfo("ee2:dark_matter_shears", 0);
+		item->mCreativeCategory = CreativeItemCategory::Items;
+		DarkMatterShears = item;
 	}
 
 	// Red Matter Sword

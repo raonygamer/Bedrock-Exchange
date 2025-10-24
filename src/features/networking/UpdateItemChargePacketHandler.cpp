@@ -43,13 +43,11 @@ void UpdateItemChargePacketHandler::handle(const NetworkIdentifier& networkId, N
 	if (packet.mCharge) {
 		short currentCharge = behavior->getCharge(stackCopy);
 		short nextCharge = currentCharge + behavior->mChargePerStep;
-		Log::Info("[Networked] Charging item '{}' from {} to {}", storage->getOwner()->mFullName.getString(), currentCharge, nextCharge);
 		behavior->charge(stackCopy);
 	}
 	else {
 		short currentCharge = behavior->getCharge(stackCopy);
 		short nextCharge = currentCharge - behavior->mChargePerStep;
-		Log::Info("[Networked] Uncharging item '{}' from {} to {}", storage->getOwner()->mFullName.getString(), currentCharge, nextCharge);
 		behavior->uncharge(stackCopy);
 	}
 

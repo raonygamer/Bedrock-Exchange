@@ -10,6 +10,7 @@
 #include "features/items/MatterShovel.hpp"
 #include "features/behaviors/items/types/ChargeableItem.hpp"
 #include "features/behaviors/items/types/ModeItem.hpp"
+#include "features/behaviors/items/types/AreaToolItem.hpp"
 #include "features/blocks/Blocks.hpp"
 #include "features/blocks/actor/AlchemicalChestBlockActor.hpp"
 #include "features/utility/BlockUtils.hpp"
@@ -67,6 +68,7 @@ Amethyst::InlineHook<decltype(&HudScreenController::$constructor)> _HudScreenCon
 Amethyst::InlineHook<decltype(Amethyst::OverloadCast<bool(HudScreenController::*)(const std::string&, uint32_t, int, const std::string&, uint32_t, const std::string&, UIPropertyBag&)>(&HudScreenController::bind))> _HudScreenController_bind;
 Amethyst::InlineHook<decltype(&InGamePlayScreen::_renderLevel)> _InGamePlayScreen__renderLevel;
 Amethyst::InlineHook<decltype(&GameMode::destroyBlock)> _GameMode_destroyBlock;
+Amethyst::InlineHook<InteractionResult*(*)(GameMode* self, InteractionResult* result, ItemStack& item, const BlockPos pos, FacingID face, const Vec3& clickPos, const Block* block)> _GameMode_useItemOn;
 
 void Player_readAdditionalSaveData(Player* self, const CompoundTag& tag, DataLoadHelper& helper) {
     _Player_readAdditionalSaveData(self, tag, helper);
@@ -312,7 +314,6 @@ bool HudScreenController_bind(
 
 void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screenContext, const FrameRenderObject& renderObj) {
 	_InGamePlayScreen__renderLevel(self, screenContext, renderObj);
-
 	auto& client = *Amethyst::GetClientCtx().mClientInstance;
 	auto& game = *client.mMinecraftGame;
 	auto& region = *client.getRegion();
@@ -328,116 +329,64 @@ void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screen
 	if (stack.isNull())
 		return;
 
-	std::vector<std::pair<BlockPos, const Block*>> blocks;
-	if (stack.mItem == Items::PhilosophersStone) {
-		auto* behavior = ChargeableItem::tryGet(stack);
-		if (!behavior)
-			return;
-
-		int charge = behavior->getCharge(stack);
-		int radius = std::clamp(charge, 0, 12);
-		int maxBlocks = std::min(1000, (2 * radius + 1) * (2 * radius + 1) * (2 * radius + 1));
-		
-		blocks = BlockUtils::floodFillBlocks(region, hitRes.mBlock, region.getBlock(hitRes.mBlock).mLegacyBlock, radius, maxBlocks);
-		for (const auto& [pos, block] : blocks) {
-			levelRendererPlayer._renderHighlightSelection(ctx, region, *block, pos, false, true);
-			levelRendererPlayer._renderOutlineSelection(screenContext, *block, region, pos);
-		}
+	auto* storage = ItemBehaviorStorage::tryGetStorage(stack);
+	if (!storage)
 		return;
-	}
-	else if (stack.mItem == Items::DarkMatterPickaxe) {
-		MatterPickaxe* item = static_cast<MatterPickaxe*>(stack.mItem.get());
-		auto* chargeBehavior = ChargeableItem::tryGet(stack);
-		auto* modeBehavior = ModeItem::tryGet(stack);
-		if (!chargeBehavior || !modeBehavior)
-			return;
 
-		Directions dirs = Directions::fromLookVec3(player.getHeadLookVector(1.0f));
-		int charge = chargeBehavior->getCharge(stack);
-		if (charge < chargeBehavior->mMaxCharge)
-			return;
-		blocks = item->getBlocksForMode(stack, region, hitRes.mBlock, dirs);
-	}
-	else if (stack.mItem == Items::DarkMatterAxe) {
-		MatterAxe* item = static_cast<MatterAxe*>(stack.mItem.get());
-		auto* chargeBehavior = ChargeableItem::tryGet(stack);
-		auto* modeBehavior = ModeItem::tryGet(stack);
-		if (!chargeBehavior || !modeBehavior)
-			return;
-
-		Directions dirs = Directions::fromLookVec3(player.getHeadLookVector(1.0f));
-		int charge = chargeBehavior->getCharge(stack);
-		if (charge < chargeBehavior->mMaxCharge)
-			return;
-		blocks = item->getBlocksForMode(stack, region, hitRes.mBlock, dirs);
-	}
-	else if (stack.mItem == Items::DarkMatterShovel) {
-		MatterShovel* item = static_cast<MatterShovel*>(stack.mItem.get());
-		auto* chargeBehavior = ChargeableItem::tryGet(stack);
-		auto* modeBehavior = ModeItem::tryGet(stack);
-		if (!chargeBehavior || !modeBehavior)
-			return;
-
-		Directions dirs = Directions::fromLookVec3(player.getHeadLookVector(1.0f));
-		int charge = chargeBehavior->getCharge(stack);
-		if (charge < chargeBehavior->mMaxCharge)
-			return;
-		blocks = item->getBlocksForMode(stack, region, hitRes.mBlock, dirs);
-	}
-
-	for (const auto& [pos, block] : blocks) {
-		if (pos == hitRes.mBlock)
-			continue;
-		levelRendererPlayer.renderHitSelect(ctx, region, pos, true);
+	auto areaToolBehavior = storage->getBehaviorsOfBase<AreaToolItem>();
+	if (!areaToolBehavior.empty()) {
+		auto merged = AreaToolItem::mergeBlocksInAreas(areaToolBehavior, stack, region, player, hitRes.mBlock);
+		for (const auto& result : merged) {
+			result.mSourceBehavior.highlightBlock(stack, ctx, region, player, result.mPosition);
+		}
 	}
 }
 
 bool GameMode_destroyBlock(GameMode* self, const BlockPos& pos, FacingID face) {
 	PlayerInventory& inventory = self->mPlayer.getSupplies();
 	const ItemStack& stack = inventory.getSelectedItem();
-
-	static HashedString matterPickaxeTag("ee2:dark_matter_pickaxe");
-	static HashedString matterAxeTag("ee2:dark_matter_axe");
-	static HashedString matterShovelTag("ee2:dark_matter_shovel");
 	if (stack.isNull())
 		return _GameMode_destroyBlock(self, pos, face);
 
 	Directions dirs = Directions::fromLookVec3(self->mPlayer.getHeadLookVector(1.0f));
 	auto& region = self->mPlayer.getDimensionBlockSource();
-	std::vector<std::pair<BlockPos, const Block*>> blocks;
-	auto* chargeBehavior = ChargeableItem::tryGet(stack);
-	if (!chargeBehavior)
+
+	auto* storage = ItemBehaviorStorage::tryGetStorage(stack);
+	if (!storage)
 		return _GameMode_destroyBlock(self, pos, face);
 
-	if (stack.mItem.get()->mFullName == matterPickaxeTag) {
-		MatterPickaxe* item = static_cast<MatterPickaxe*>(stack.mItem.get());
-		if (chargeBehavior->getCharge(stack) < chargeBehavior->mMaxCharge)
-			return _GameMode_destroyBlock(self, pos, face);
-		blocks = item->getBlocksForMode(stack, region, pos, dirs);
-	}
-	else if (stack.mItem.get()->mFullName == matterAxeTag) {
-		MatterAxe* item = static_cast<MatterAxe*>(stack.mItem.get());
-		if (chargeBehavior->getCharge(stack) < chargeBehavior->mMaxCharge)
-			return _GameMode_destroyBlock(self, pos, face);
-		blocks = item->getBlocksForMode(stack, region, pos, dirs);
-	}
-	else if (stack.mItem.get()->mFullName == matterShovelTag) {
-		MatterShovel* item = static_cast<MatterShovel*>(stack.mItem.get());
-		if (chargeBehavior->getCharge(stack) < chargeBehavior->mMaxCharge)
-			return _GameMode_destroyBlock(self, pos, face);
-		blocks = item->getBlocksForMode(stack, region, pos, dirs);
-	}
-	else {
-		return _GameMode_destroyBlock(self, pos, face);
+	auto areaToolBehavior = storage->getBehaviorsOfBase<AreaToolItem>();
+	if (!areaToolBehavior.empty()) {
+		auto merged = AreaToolItem::mergeBlocksInAreas(areaToolBehavior, stack, region, self->mPlayer, pos);
+		for (const auto& result : merged) {
+			if (result.mPosition == pos)
+				continue;
+			_GameMode_destroyBlock(self, result.mPosition, face);
+		}
 	}
 
-
-	for (const auto& [blockPos, block] : blocks) {
-		if (blockPos == pos)
-			continue;
-		_GameMode_destroyBlock(self, blockPos, face);
-	}
 	return _GameMode_destroyBlock(self, pos, face);
+}
+
+InteractionResult* GameMode_useItemOn(GameMode* self, InteractionResult* _return, ItemStack& item, const BlockPos pos, FacingID face, const Vec3& clickPos, const Block* block) {
+	_GameMode_useItemOn(self, _return, item, pos, face, clickPos, block);
+	Directions dirs = Directions::fromLookVec3(self->mPlayer.getHeadLookVector(1.0f));
+	auto& region = self->mPlayer.getDimensionBlockSource();
+	auto* storage = ItemBehaviorStorage::tryGetStorage(item);
+	if (!storage)
+		return _return;
+
+	auto areaToolBehavior = storage->getBehaviorsOfBase<AreaToolItem>();
+	if (!areaToolBehavior.empty()) {
+		auto merged = AreaToolItem::mergeBlocksInAreas(areaToolBehavior, item, region, self->mPlayer, pos);
+		for (const auto& result : merged) {
+			if (result.mPosition == pos)
+				continue;
+			InteractionResult tempResult;
+			_GameMode_useItemOn(self, &tempResult, item, result.mPosition, face, clickPos, block);
+		}
+	}
+	return _return;
 }
 
 SafetyHookMid _Actor_calculateAttackDamage_additionalDmgExt;
@@ -467,6 +416,7 @@ void CreateAllHooks(AmethystContext& ctx) {
 
     VHOOK(Item, appendFormattedHovertext, this);
 	VHOOK(GameMode, destroyBlock, this);
+	VHOOK(GameMode, useItemOn, this);
 
 	// Extension to support tag "AdditionalAttackDamage" on ItemStack NBT
 	{

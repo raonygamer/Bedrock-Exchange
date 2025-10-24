@@ -32,6 +32,8 @@ item.ee2:dark_matter_sword.name=Dark Matter Sword
 item.ee2:dark_matter_pickaxe.name=Dark Matter Pickaxe
 item.ee2:dark_matter_axe.name=Dark Matter Axe
 item.ee2:dark_matter_shovel.name=Dark Matter Shovel
+item.ee2:dark_matter_hoe.name=Dark Matter Hoe
+item.ee2:dark_matter_shears.name=Dark Matter Shears
 item.ee2:red_matter_sword.name=Red Matter Sword
 
 tile.ee2:alchemical_coal_block.name=Alchemical Coal Block
@@ -56,6 +58,8 @@ hover.ee2:mode.3x_longshot.text=3x Longshot
 hover.ee2:mode.3x_plate.text=3x Plate
 hover.ee2:mode.veinminer.text=Veinminer
 hover.ee2:mode.multi_chop.text=Multi-chop
+hover.ee2:mode.multi_harvest.text=Multi-harvest
+hover.ee2:mode.5x_plane.text=5x Plane
 
 key.ee2.charge_item=Charge Item
 key.ee2.uncharge_item=Uncharge Item

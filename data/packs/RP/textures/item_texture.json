@@ -61,6 +61,12 @@
         "ee2:dark_matter_shovel": {
             "textures": "textures/items/dm_tools/shovel"
         },
+        "ee2:dark_matter_hoe": {
+            "textures": "textures/items/dm_tools/hoe"
+        },
+        "ee2:dark_matter_shears": {
+            "textures": "textures/items/dm_tools/shears"
+        },
         "ee2:red_matter_sword": {
             "textures": "textures/items/rm_tools/sword"
         }

@@ -34,6 +34,12 @@ public:
 	const std::string& getModeName(size_t mode) const;
 	std::string getModeDescription(size_t mode) const;
 
+	template<typename T>
+	requires std::is_enum_v<T>
+	T getModeAsEnum(const ItemStackBase& stack) const {
+		return static_cast<T>(getMode(stack));
+	}
+
 	void sendModeChangeMessage(size_t mode) const;
 
 	static ModeItem* tryGet(const ItemStackBase& stack);

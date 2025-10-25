@@ -44,7 +44,9 @@ tile.ee2:dark_matter_block.name=Dark Matter Block
 tile.ee2:red_matter_block.name=Red Matter Block
 tile.ee2:dark_matter_furnace.name=Dark Matter Furnace
 
-itemGroup.ee2:alchemical_bags.name=Alchemical Bags
+itemGroup.name.ee2:alchemical_bags=Alchemical Bags
+itemGroup.name.ee2:matter_tools=Matter Tools
+itemGroup.name.ee2:matter_weapons=Matter Weapons
 
 hover.ee2:charge_damage.text=Charge Damage
 hover.ee2:total_damage.text=Total Damage

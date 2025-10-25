@@ -36,11 +36,22 @@ std::vector<BlockAreaResult> MatterHoeAreaToolItem::getBlocksInArea(const ItemSt
 		return {};
 	}
 
+	if (!stack.mItem)
+		return {};
+
 	auto mode = modeBehavior->getModeAsEnum<MatterHoe::Mode>(stack);
+	auto& centerBlock = region.getBlock(center);
 	std::vector<BlockAreaResult> blocks;
 	switch (mode) {
 	case MatterHoe::Mode::MultiHarvest: {
-
+		const int radius = 8;
+		const int maxBlocks = radius * radius * radius + 1;
+		if (!stack.canDestroyOptimally(centerBlock) || stack.mItem->getDestroySpeed(stack, centerBlock) <= 1.0f)
+			break;
+		auto results = BlockUtils::floodFillBlocks(region, center, region.getBlock(center).mLegacyBlock, radius, maxBlocks);
+		for (const auto& [pos, block] : results) {
+			blocks.emplace_back(pos, *block, *this);
+		}
 		break;
 	}
 	case MatterHoe::Mode::Plane5x5: {

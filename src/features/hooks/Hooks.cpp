@@ -48,6 +48,7 @@
 #include "mc/src-client/common/client/gui/screens/InGamePlayScreen.hpp"
 #include "mc/src-client/common/client/renderer/game/LevelRenderer.hpp"
 #include "mc/src-client/common/client/renderer/game/LevelRendererPlayer.hpp"
+#include "mc/src-client/common/client/particlesystem/particle/ParticleSystemEngine.hpp"
 #include "mc/src/common/world/item/VanillaItems.hpp"
 #include "mc/src-deps/core/math/Color.hpp"
 
@@ -403,6 +404,12 @@ void Actor_calculateAttackDamage_additionalDmgExt(SafetyHookContext& ctx) {
 	ctx.rax += static_cast<IntTag*>(tag)->data;
 }
 
+SafetyHookMid _LevelRendererPlayer_addTerrainEffect_removeBlockParticleLimit;
+void LevelRendererPlayer_addTerrainEffect_removeBlockParticleLimit(SafetyHookContext& ctx) {
+	ctx.r12 = 0; // Set as if no "minecraft:block_destruct" emitters exist
+	ctx.rax = 0; // Set as if no "minecraft:block_destruct" particles exist
+}
+
 void CreateAllHooks(AmethystContext& ctx) {
     auto& hooks = *ctx.mHookManager;
     HOOK(Player, $constructor);
@@ -413,7 +420,7 @@ void CreateAllHooks(AmethystContext& ctx) {
 	HOOK(VanillaItems, _addItemsCategory);
     HOOK(ContainerScreenController, _registerBindings);
 	HOOK(InGamePlayScreen, _renderLevel);
-
+	
     VHOOK(Item, appendFormattedHovertext, this);
 	VHOOK(GameMode, destroyBlock, this);
 	VHOOK(GameMode, useItemOn, this);
@@ -424,6 +431,14 @@ void CreateAllHooks(AmethystContext& ctx) {
 		if (!address)
 			AssertFail("Failed to find signature for Actor_calculateAttackDamage_additionalDmgExt");
 		_Actor_calculateAttackDamage_additionalDmgExt = safetyhook::create_mid(*address, &Actor_calculateAttackDamage_additionalDmgExt);
+	}
+
+	// Remove block particle limit when breaking blocks with Area Tools
+	{
+		auto address = SigScanSafe("49 83 FC ? 0F 87 ? ? ? ? 48 3D");
+		if (!address)
+			AssertFail("Failed to find signature for LevelRendererPlayer_addTerrainEffect_removeBlockParticleLimit");
+		_LevelRendererPlayer_addTerrainEffect_removeBlockParticleLimit = safetyhook::create_mid(*address, &LevelRendererPlayer_addTerrainEffect_removeBlockParticleLimit);
 	}
 	
 	using BindFn = bool(HudScreenController::*)(

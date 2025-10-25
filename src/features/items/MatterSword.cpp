@@ -37,6 +37,17 @@ void MatterSword::appendFormattedHovertext(const ItemStackBase& stack, Level& le
 	}
 }
 
+float MatterSword::getDestroySpeed(const ItemStackBase& stack, const Block& block) const {
+	float speed = WeaponItem::getDestroySpeed(stack, block);
+	if (auto* chargeableBehavior = ChargeableItem::tryGet(stack)) {
+		short charge = chargeableBehavior->getCharge(stack);
+		short maxCharge = chargeableBehavior->mMaxCharge;
+		float chargeMultiplier = (static_cast<float>(charge) / static_cast<float>(maxCharge));
+		return speed * std::clamp(chargeMultiplier, 0.2f, 1.0f);
+	}
+	return speed;
+}
+
 void MatterSword::onSetCharge(ChargeableItem::SetChargeEvent* e) {
 	auto& stack = e->mStack;
 	short currentCharge = e->mNewCharge;

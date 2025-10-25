@@ -8,8 +8,8 @@ namespace ee2 {
 		DARK_MATTER = std::make_unique<Item::Tier>(
 			5,     // level
 			-1,    // uses
-			15.0f, // speed
-			5,     // damage
+			18.5f, // speed
+			8,     // damage
 			20     // enchantment value
 		);
 
@@ -17,7 +17,7 @@ namespace ee2 {
 			6,     // level
 			-1,    // uses
 			25.0f, // speed
-			7,     // damage
+			11,     // damage
 			25     // enchantment value
 		);
 	}

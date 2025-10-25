@@ -1,6 +1,7 @@
 #include "features/items/MatterShovel.hpp"
 #include "features/utility/BlockUtils.hpp"
 #include "features/behaviors/items/types/ModeItem.hpp"
+#include "features/behaviors/items/types/ChargeableItem.hpp"
 
 #include <format>
 
@@ -27,4 +28,15 @@ void MatterShovel::appendFormattedHovertext(const ItemStackBase& stack, Level& l
 		size_t mode = modeBehavior->getMode(stack);
 		outText += ("\n" + modeBehavior->getModeDescription(mode));
 	}
+}
+
+float MatterShovel::getDestroySpeed(const ItemStackBase& stack, const Block& block) const {
+	float speed = ShovelItem::getDestroySpeed(stack, block);
+	if (auto* chargeableBehavior = ChargeableItem::tryGet(stack)) {
+		short charge = chargeableBehavior->getCharge(stack);
+		short maxCharge = chargeableBehavior->mMaxCharge;
+		float chargeMultiplier = (static_cast<float>(charge) / static_cast<float>(maxCharge));
+		return speed * std::clamp(chargeMultiplier, 0.2f, 1.0f);
+	}
+	return speed;
 }

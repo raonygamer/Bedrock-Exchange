@@ -5,6 +5,7 @@
 #include "features/emc/EMCRepository.hpp"
 #include "features/emc/EMCUtils.hpp"
 #include "features/items/Items.hpp"
+#include "features/items/AlchemicalBagItem.hpp"
 #include "features/items/MatterPickaxe.hpp"
 #include "features/items/MatterAxe.hpp"
 #include "features/items/MatterShovel.hpp"
@@ -189,6 +190,47 @@ void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, 
     Item::addCreativeItem(registry, *Blocks::DarkMatterBlock->mDefaultState);
     Item::addCreativeItem(registry, *Blocks::RedMatterBlock->mDefaultState);
     Item::addCreativeItem(registry, *Blocks::DarkMatterFurnaceBlock->mDefaultState);
+}
+
+void VanillaItems__addEquipmentCategory(CreativeItemRegistry* creativeItemRegistry, ItemRegistryRef registry, const BaseGameVersion& version, const Experiments& experiments) {
+	_VanillaItems__addEquipmentCategory(creativeItemRegistry, registry, version, experiments);
+	ItemInstance instance = ItemStack::EMPTY_ITEM;
+	// Alchemical Bags
+	{
+		instance.reinit(*Items::AlchemicalBags["black"], 1, 0);
+		auto group = Item::ScopedCreativeGroup("itemGroup.name.ee2:alchemical_bags", instance);
+		
+		for (const auto& [colorName, item] : Items::AlchemicalBags) {
+			instance.reinit(*item, 1, 0);
+			Item::addCreativeItem(registry, instance);
+		}
+	}
+
+	// Matter Tools
+	{
+		instance.reinit(*Items::DarkMatterPickaxe, 1, 0);
+		auto group = Item::ScopedCreativeGroup("itemGroup.name.ee2:matter_tools", instance);
+
+		Item::addCreativeItem(registry, instance);
+		instance.reinit(*Items::DarkMatterAxe, 1, 0);
+		Item::addCreativeItem(registry, instance);
+		instance.reinit(*Items::DarkMatterShovel, 1, 0);
+		Item::addCreativeItem(registry, instance);
+		instance.reinit(*Items::DarkMatterHoe, 1, 0);
+		Item::addCreativeItem(registry, instance);
+		instance.reinit(*Items::DarkMatterShears, 1, 0);
+		Item::addCreativeItem(registry, instance);
+	}
+
+	// Matter Weapons
+	{
+		instance.reinit(*Items::DarkMatterSword, 1, 0);
+		auto group = Item::ScopedCreativeGroup("itemGroup.name.ee2:matter_weapons", instance);
+		
+		Item::addCreativeItem(registry, instance);
+		instance.reinit(*Items::RedMatterSword, 1, 0);
+		Item::addCreativeItem(registry, instance);
+	}
 }
 
 void ContainerScreenController__registerBindings(ContainerScreenController* self) {
@@ -418,6 +460,7 @@ void CreateAllHooks(AmethystContext& ctx) {
 	HOOK(Recipes, init);
 	HOOK(BlockActorFactory, createBlockEntity);
 	HOOK(VanillaItems, _addItemsCategory);
+	HOOK(VanillaItems, _addEquipmentCategory);
     HOOK(ContainerScreenController, _registerBindings);
 	HOOK(InGamePlayScreen, _renderLevel);
 	

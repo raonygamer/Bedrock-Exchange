@@ -1,6 +1,7 @@
 #include "features/items/MatterPickaxe.hpp"
 #include "features/utility/BlockUtils.hpp"
 #include "features/behaviors/items/types/ModeItem.hpp"
+#include "features/behaviors/items/types/ChargeableItem.hpp"
 
 #include <format>
 
@@ -26,4 +27,15 @@ void MatterPickaxe::appendFormattedHovertext(const ItemStackBase& stack, Level& 
 		size_t mode = modeBehavior->getMode(stack);
 		outText += ("\n" + modeBehavior->getModeDescription(mode));
 	}
+}
+
+float MatterPickaxe::getDestroySpeed(const ItemStackBase& stack, const Block& block) const {
+	float speed = PickaxeItem::getDestroySpeed(stack, block);
+	if (auto* chargeableBehavior = ChargeableItem::tryGet(stack)) {
+		short charge = chargeableBehavior->getCharge(stack);
+		short maxCharge = chargeableBehavior->mMaxCharge;
+		float chargeMultiplier = (static_cast<float>(charge) / static_cast<float>(maxCharge));
+		return speed * std::clamp(chargeMultiplier, 0.2f, 1.0f);
+	}
+	return speed;
 }

@@ -12,6 +12,7 @@ public:
 	MatterSword(const std::string& identifier, short numId, const Item::Tier& tier, int32_t baseDmg);
 	virtual bool isDamageable() const override;
 	virtual void appendFormattedHovertext(const ItemStackBase& stack, Level& level, std::string& outText, bool showCategory) const override;
+	virtual float getDestroySpeed(const ItemStackBase& stack, const Block& block) const override;
 
 	void onSetCharge(ChargeableItem::SetChargeEvent* e);
 };

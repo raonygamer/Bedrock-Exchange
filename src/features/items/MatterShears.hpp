@@ -13,4 +13,5 @@ public:
 	MatterShears(const std::string& name, short id, const Item::Tier& tier);
 
 	virtual bool isDamageable() const override;
+	virtual float getDestroySpeed(const ItemStackBase& stack, const Block& block) const override;
 };

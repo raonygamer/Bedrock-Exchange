@@ -4,7 +4,7 @@ AlchemicalChestBlockActor::AlchemicalChestBlockActor(const BlockPos& pos) :
 	ChestBlockActor(
 		CustomBlockActorType::AlchemicalChest,
 		"AlchemicalChest",
-		CustomBlockActorRendererId::TR_ALCHEMICAL_CHEST,
+		CustomBlockActorRendererId::AlchemicalChest,
 		pos,
 		false
 	)

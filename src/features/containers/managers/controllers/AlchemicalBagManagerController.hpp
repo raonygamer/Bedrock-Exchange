@@ -13,13 +13,7 @@ class AlchemicalBagManagerController :
 {
 public:
 	AlchemicalBagManagerController(std::weak_ptr<AlchemicalBagManagerModel> model);
-	virtual void handleTakeAll(const SlotData& to, const SlotData& from);
-	virtual void handlePlaceOne(const SlotData& to, const SlotData& from);
-	virtual void handlePlaceAmount(const SlotData& to, int, const SlotData& from);
-	virtual void handleTakeAmount(const SlotData&, int, const SlotData&);
-	virtual void handleTakeHalf(const SlotData& to, const SlotData& from);
-	virtual void handleSwap(const SlotData& to, const SlotData& from);
-	virtual void handleSplitSingle(const SlotData& to, const SlotData& from);
-	virtual void handleSplitMultiple(const SelectedSlotInfo& selectedInfo, const ItemInstance& itemInstance, const SlotData& from);
-	virtual bool isAlchemicalBagItem(const SlotData& slotData);
+	virtual void handlePlaceInItemContainer(const SlotData& from, const SlotData& to) {
+		Log::Info("handlePlaceInItemContainer {}:{} -> {}:{}", from.mCollectionName, from.mCollectionIndex, to.mCollectionName, to.mCollectionIndex);
+	}
 };

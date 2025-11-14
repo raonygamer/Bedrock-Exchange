@@ -45,6 +45,7 @@ ModFunction void Initialize(AmethystContext& ctx, const Amethyst::Mod& mod)
 		Blocks::RegisterAllBlocks(event, ctx);
 	});
 
+#if CLIENT
 	// Listen to InitBlockGraphicsEvent to initialize block graphics
     ctx.mEventBus->AddListener<InitBlockGraphicsEvent>([&](InitBlockGraphicsEvent& event) {
         Blocks::InitAllBlockGraphics(event, ctx);
@@ -60,6 +61,7 @@ ModFunction void Initialize(AmethystContext& ctx, const Amethyst::Mod& mod)
 		ChargeableItemInputs::Initialize(event, ctx);
 		ModeItemInputs::Initialize(event, ctx);
     });
+#endif
 
     // Register game hooks
 	CreateAllHooks(ctx);

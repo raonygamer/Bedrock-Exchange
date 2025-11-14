@@ -12,7 +12,8 @@ public:
 	static WeakPtr<BlockLegacy> AlchemicalChestBlock;
 	static WeakPtr<BlockLegacy> DarkMatterBlock;
 	static WeakPtr<BlockLegacy> RedMatterBlock;
-	static WeakPtr<DarkMatterFurnaceBlock> DarkMatterFurnaceBlock;
+	static WeakPtr<BlockLegacy> DarkMatterFurnaceBlock;
+	static WeakPtr<BlockLegacy> DarkMatterFurnaceBlockLit;
 
 	static void RegisterAllBlocks(RegisterBlocksEvent& event, AmethystContext& ctx);
 	static void InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext& ctx);

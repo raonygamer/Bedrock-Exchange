@@ -33,6 +33,7 @@ AlchemicalBagItem::AlchemicalBagItem(const std::string& name, short id, const st
 	}
 	if (index != -1)
 		setIconInfo("ee2:alchemical_bag", index);
+	mBagIndex = index;
 	mMaxStackSize = 1;
 	mCreativeCategory = CreativeItemCategory::Items;
 	mCreativeGroup = "itemGroup.name.ee2:alchemical_bags";
@@ -61,7 +62,7 @@ ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const
 	else {
 		ServerPlayer& serverPlayer = static_cast<ServerPlayer&>(player);
 		auto id = serverPlayer.nextContainerId();
-		auto containerManager = std::make_shared<AlchemicalBagManagerModel>(id, player);
+		auto containerManager = std::make_shared<AlchemicalBagManagerModel>(id, player, mBagIndex);
 		containerManager->postInit();
 		serverPlayer.setContainerManagerModel(containerManager);
 		ContainerOpenPacket packet(containerManager->getContainerId(), containerManager->getContainerType(), BlockPos(0, 0, 0), player.getUniqueID());
@@ -71,4 +72,10 @@ ItemStack& AlchemicalBagItem::use(ItemStack& stack, Player& player) const
 	}
 	
 	return stack;
+}
+
+bool AlchemicalBagItem::isAlchemicalBagItem(const ItemStackBase& stack) {
+	if (!stack.mItem)
+		return false;
+	return stack.mItem->mFullName.getString().starts_with("ee2:") && stack.mItem->mFullName.getString().ends_with("_alchemical_bag");
 }

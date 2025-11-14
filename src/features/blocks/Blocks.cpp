@@ -1,6 +1,7 @@
 #include "Blocks.hpp"
 #include "mc/src/common/world/level/block/definition/BlockDefinitionGroup.hpp"
 #include "mc/src/common/world/level/block/types/ChestBlock.hpp"
+#include "mc/src/common/world/level/block/traits/block_trait/PlacementDirection.hpp"
 #include "mc/src/common/world/level/block/registry/BlockTypeRegistry.hpp"
 #include "mc/src-client/common/client/renderer/block/BlockGraphics.hpp"
 #include "mc/src-client/common/client/renderer/blockActor/BlockActorRendererDispatcher.hpp"
@@ -15,59 +16,64 @@ WeakPtr<BlockLegacy> Blocks::AeternalisFuelBlock = nullptr;
 WeakPtr<BlockLegacy> Blocks::AlchemicalChestBlock = nullptr;
 WeakPtr<BlockLegacy> Blocks::DarkMatterBlock = nullptr;
 WeakPtr<BlockLegacy> Blocks::RedMatterBlock = nullptr;
-WeakPtr<DarkMatterFurnaceBlock> Blocks::DarkMatterFurnaceBlock = nullptr;
+WeakPtr<BlockLegacy> Blocks::DarkMatterFurnaceBlock = nullptr;
+WeakPtr<BlockLegacy> Blocks::DarkMatterFurnaceBlockLit = nullptr;
 
 void Blocks::RegisterAllBlocks(RegisterBlocksEvent& event, AmethystContext& ctx) {
 	auto& blockDefs = event.blockDefinitions;
-	auto& hayBlock = BlockTypeRegistry::mBlockLookupMap["minecraft:hay_block"];
+
+	// Traits used for multiple blocks
+	BlockTrait::PlacementDirection direction;
 
 	// Alchemical Coal Block
 	{
 		auto block = BlockTypeRegistry::registerBlock<BlockLegacy>("ee2:alchemical_coal_block", ++blockDefs.mLastBlockId, Material::getMaterial(MaterialType::Solid));
-		block->mCreativeCategory = CreativeItemCategory::Items;
 		AlchemicalCoalBlock = block;
 	}
 
 	// Mobius Fuel Block
 	{
 		auto block = BlockTypeRegistry::registerBlock<BlockLegacy>("ee2:mobius_fuel_block", ++blockDefs.mLastBlockId, Material::getMaterial(MaterialType::Solid));
-		block->mCreativeCategory = CreativeItemCategory::Items;
 		MobiusFuelBlock = block;
 	}
 
 	// Aeternalis Fuel Block
 	{
 		auto block = BlockTypeRegistry::registerBlock<BlockLegacy>("ee2:aeternalis_fuel_block", ++blockDefs.mLastBlockId, Material::getMaterial(MaterialType::Solid));
-		block->mCreativeCategory = CreativeItemCategory::Items;
 		AeternalisFuelBlock = block;
 	}
 
 	// Alchemical Chest Block
 	{
 		auto block = BlockTypeRegistry::registerBlock<::AlchemicalChestBlock>("ee2:alchemical_chest", ++blockDefs.mLastBlockId);
-		block->mCreativeCategory = CreativeItemCategory::Items;
+		block->addTrait(direction);
 		AlchemicalChestBlock = block;
 	}
 
 	// Dark Matter Block
 	{
 		auto block = BlockTypeRegistry::registerBlock<BlockLegacy>("ee2:dark_matter_block", ++blockDefs.mLastBlockId, Material::getMaterial(MaterialType::Metal));
-		block->mCreativeCategory = CreativeItemCategory::Items;
 		DarkMatterBlock = block;
 	}
 
 	// Red Matter Block
 	{
 		auto block = BlockTypeRegistry::registerBlock<BlockLegacy>("ee2:red_matter_block", ++blockDefs.mLastBlockId, Material::getMaterial(MaterialType::Metal));
-		block->mCreativeCategory = CreativeItemCategory::Items;
 		RedMatterBlock = block;
 	}
 
 	// Dark Matter Furnace Block
 	{
 		auto block = BlockTypeRegistry::registerBlock<::DarkMatterFurnaceBlock>("ee2:dark_matter_furnace", ++blockDefs.mLastBlockId, false);
-		block->mCreativeCategory = CreativeItemCategory::Items;
+		block->addTrait(direction);
 		DarkMatterFurnaceBlock = block;
+	}
+
+	// Dark Matter Furnace Block (Lit)
+	{
+		auto block = BlockTypeRegistry::registerBlock<::DarkMatterFurnaceBlock>("ee2:dark_matter_furnace_lit", ++blockDefs.mLastBlockId, true);
+		block->addTrait(direction);
+		DarkMatterFurnaceBlockLit = block;
 	}
 }
 
@@ -76,14 +82,7 @@ void Blocks::InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext
 	{
 		BlockGraphics& graphics = *BlockGraphics::createBlockGraphics(AlchemicalCoalBlock->mNameInfo.mFullName, BlockShape::BLOCK);
 		if (graphics.mTextureItems.size() == 0) {
-			graphics.setTextureItem(
-				"ee2:alchemical_coal_block",
-				"ee2:alchemical_coal_block",
-				"ee2:alchemical_coal_block",
-				"ee2:alchemical_coal_block",
-				"ee2:alchemical_coal_block",
-				"ee2:alchemical_coal_block"
-			);
+			graphics.setTextureItem("ee2:alchemical_coal_block");
 		}
 		graphics.setDefaultCarriedTextures();
 	}
@@ -92,14 +91,7 @@ void Blocks::InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext
 	{
 		BlockGraphics& graphics = *BlockGraphics::createBlockGraphics(MobiusFuelBlock->mNameInfo.mFullName, BlockShape::BLOCK);
 		if (graphics.mTextureItems.size() == 0) {
-			graphics.setTextureItem(
-				"ee2:mobius_fuel_block",
-				"ee2:mobius_fuel_block",
-				"ee2:mobius_fuel_block",
-				"ee2:mobius_fuel_block",
-				"ee2:mobius_fuel_block",
-				"ee2:mobius_fuel_block"
-			);
+			graphics.setTextureItem("ee2:mobius_fuel_block");
 		}
 		graphics.setDefaultCarriedTextures();
 	}
@@ -108,14 +100,7 @@ void Blocks::InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext
 	{
 		BlockGraphics& graphics = *BlockGraphics::createBlockGraphics(AeternalisFuelBlock->mNameInfo.mFullName, BlockShape::BLOCK);
 		if (graphics.mTextureItems.size() == 0) {
-			graphics.setTextureItem(
-				"ee2:aeternalis_fuel_block",
-				"ee2:aeternalis_fuel_block",
-				"ee2:aeternalis_fuel_block",
-				"ee2:aeternalis_fuel_block",
-				"ee2:aeternalis_fuel_block",
-				"ee2:aeternalis_fuel_block"
-			);
+			graphics.setTextureItem("ee2:aeternalis_fuel_block");
 		}
 		graphics.setDefaultCarriedTextures();
 	}
@@ -140,14 +125,7 @@ void Blocks::InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext
 	{
 		BlockGraphics& graphics = *BlockGraphics::createBlockGraphics(DarkMatterBlock->mNameInfo.mFullName, BlockShape::BLOCK);
 		if (graphics.mTextureItems.size() == 0) {
-			graphics.setTextureItem(
-				"ee2:dark_matter_block",
-				"ee2:dark_matter_block",
-				"ee2:dark_matter_block",
-				"ee2:dark_matter_block",
-				"ee2:dark_matter_block",
-				"ee2:dark_matter_block"
-			);
+			graphics.setTextureItem("ee2:dark_matter_block");
 		}
 		graphics.setDefaultCarriedTextures();
 	}
@@ -156,14 +134,7 @@ void Blocks::InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext
 	{
 		BlockGraphics& graphics = *BlockGraphics::createBlockGraphics(RedMatterBlock->mNameInfo.mFullName, BlockShape::BLOCK);
 		if (graphics.mTextureItems.size() == 0) {
-			graphics.setTextureItem(
-				"ee2:red_matter_block",
-				"ee2:red_matter_block",
-				"ee2:red_matter_block",
-				"ee2:red_matter_block",
-				"ee2:red_matter_block",
-				"ee2:red_matter_block"
-			);
+			graphics.setTextureItem("ee2:red_matter_block");
 		}
 		graphics.setDefaultCarriedTextures();
 	}
@@ -176,9 +147,25 @@ void Blocks::InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext
 				"ee2:dm_furnace_top",
 				"ee2:dm_furnace_top",
 				"ee2:dm_furnace_side",
-				"ee2:dm_furnace_front",
+				"ee2:dm_furnace_front_off",
 				"ee2:dm_furnace_side",
 				"ee2:dm_furnace_side"
+			);
+		}
+		graphics.setDefaultCarriedTextures();
+	}
+
+	// Dark Matter Furnace Block (Lit)
+	{
+		BlockGraphics& graphics = *BlockGraphics::createBlockGraphics(DarkMatterFurnaceBlockLit->mNameInfo.mFullName, BlockShape::BLOCK);
+		if (graphics.mTextureItems.size() == 0) {
+			graphics.setTextureItem(
+				"ee2:dm_furnace_top",
+				"ee2:dm_furnace_top",
+				"ee2:dm_furnace_side",
+				"ee2:dm_furnace_side",
+				"ee2:dm_furnace_side",
+				"ee2:dm_furnace_front_on"
 			);
 		}
 		graphics.setDefaultCarriedTextures();
@@ -186,5 +173,5 @@ void Blocks::InitAllBlockGraphics(InitBlockGraphicsEvent& event, AmethystContext
 }
 
 void Blocks::InitAllBlockEntityRenderers(InitBlockEntityRenderersEvent& event, AmethystContext& ctx) {
-	event.renderDispatcher.mRenderers[CustomBlockActorRendererId::TR_ALCHEMICAL_CHEST] = std::make_unique<AlchemicalChestRenderer>(event.textures);
+	event.renderDispatcher.mRenderers[CustomBlockActorRendererId::AlchemicalChest] = std::make_unique<AlchemicalChestRenderer>(event.textures);
 }

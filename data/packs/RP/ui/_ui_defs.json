@@ -1,6 +1,7 @@
 {
   // Alphabetical order please :)
   "ui_defs": [
-    "ui/alchemical_chest_screen.json"
+    "ui/alchemical_chest_screen.json",
+    "ui/dark_matter_furnace.json"
   ]
 }

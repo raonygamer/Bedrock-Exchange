@@ -1,4 +1,5 @@
 #include "AlchemicalBagManagerModel.hpp"
+#include "features/ModGlobals.hpp"
 #include "mc/src/common/world/item/ItemStack.hpp"
 #include "mc/src/common/world/actor/player/Player.hpp"
 #include "mc/src/common/world/actor/player/Inventory.hpp"
@@ -8,8 +9,9 @@
 #include "features/containers/models/AlchemicalBagContainerModel.hpp"
 #include "features/components/AlchemicalBagContainerComponent.hpp"
 
-AlchemicalBagManagerModel::AlchemicalBagManagerModel(ContainerID id, Player& player) :
-	LevelContainerManagerModel(id, player, player.getUniqueID())
+AlchemicalBagManagerModel::AlchemicalBagManagerModel(ContainerID id, Player& player, int bagIndex) :
+	LevelContainerManagerModel(id, player, player.getUniqueID()),
+	mBagIndex(bagIndex)
 {
 	setContainerType(ContainerType::CONTAINER);
 }
@@ -23,7 +25,7 @@ ContainerScreenContext AlchemicalBagManagerModel::_postInit()
 	auto& supplies = mPlayer.getSupplies();
 	auto hotbarSize = 9;
 	auto containerSize = supplies.mInventory->getContainerSize();
-	_addContainer(std::make_shared<AlchemicalBagContainerModel>(ContainerEnumName::ContainerItems, 104, mPlayer));
+	_addContainer(std::make_shared<AlchemicalBagContainerModel>(ContainerEnumName::ContainerItems, 104, mPlayer, mBagIndex));
 	_addContainer(std::make_shared<PlayerUIContainerModel>(ContainerEnumName::CursorContainer, mPlayer));
 	_addContainer(std::make_shared<InventoryContainerModel>(ContainerEnumName::HotbarContainer, hotbarSize, mPlayer));
 	_addContainer(std::make_shared<InventoryContainerModel>(ContainerEnumName::InventoryContainer, containerSize - hotbarSize, mPlayer));

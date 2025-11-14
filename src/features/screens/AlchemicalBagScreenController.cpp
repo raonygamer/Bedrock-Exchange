@@ -15,7 +15,7 @@ AlchemicalBagScreenController::AlchemicalBagScreenController(std::shared_ptr<Cli
 {
 	auto& player = *model->getPlayer();
 	setAssociatedEntityUniqueID(player.getUniqueID());
-	auto managerModel = ContainerFactory::clientCreateContainerManagerModel<AlchemicalBagManagerModel>(player, ContainerID::CONTAINER_ID_NONE, player);
+	auto managerModel = ContainerFactory::clientCreateContainerManagerModel<AlchemicalBagManagerModel>(player, ContainerID::CONTAINER_ID_NONE, player, item->mBagIndex);
 	mContainerManagerController = std::make_shared<AlchemicalBagManagerController>(managerModel);
 	mContainerManagerController->registerContainerCallbacks();
 	mContainerManagerController->postInit(mContainerManagerController);

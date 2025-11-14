@@ -58,7 +58,9 @@ std::vector<BlockAreaResult> MatterAxeAreaToolItem::getBlocksInArea(const ItemSt
 }
 
 bool MatterAxeAreaToolItem::highlightBlock(const ItemStackBase& stack, BaseActorRenderContext& context, BlockSource& region, Actor& actor, const BlockPos& target) const {
-	auto& levelRendererPlayer = *context.mClientInstance->mLevelRenderer->mLevelRendererPlayer;
+#ifdef CLIENT
+	auto& levelRendererPlayer = *context.mClientInstance.mLevelRenderer->mLevelRendererPlayer;
 	levelRendererPlayer.renderHitSelect(context, region, target, true);
+#endif
 	return true;
 }

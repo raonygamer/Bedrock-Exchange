@@ -11,4 +11,5 @@ public:
 	virtual void _registerCoalesceOrder() override;
 	virtual void _registerAutoPlaceOrder() override;
 	void _registerBindings();
+
 };

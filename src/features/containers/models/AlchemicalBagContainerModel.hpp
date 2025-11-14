@@ -15,7 +15,9 @@ class AlchemicalBagContainerModel :
 	public LevelContainerModel
 {
 public:
-	AlchemicalBagContainerModel(ContainerEnumName name, int size, Player& player);
+	int mBagIndex;
+
+	AlchemicalBagContainerModel(ContainerEnumName name, int size, Player& player, int bagIndex);
 	virtual Container* _getContainer() override;
 	virtual int _getContainerOffset() override;
 	virtual ContainerWeakRef getContainerWeakRef() override;

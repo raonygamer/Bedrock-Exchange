@@ -6,7 +6,9 @@ class AlchemicalBagManagerModel :
 	public LevelContainerManagerModel
 {
 public:
-	AlchemicalBagManagerModel(ContainerID id, Player& player);
+	int mBagIndex;
+
+	AlchemicalBagManagerModel(ContainerID id, Player& player, int bagIndex);
 	virtual bool isValid();
     virtual ContainerScreenContext _postInit();
 

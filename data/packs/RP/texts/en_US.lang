@@ -66,3 +66,5 @@ hover.ee2:mode.5x_plane.text=5x Plane
 key.ee2.charge_item=Charge Item
 key.ee2.uncharge_item=Uncharge Item
 key.ee2.switch_item_mode=Switch Item Mode
+
+container.ee2:dark_matter_furnace.name=Dark Matter Furnace

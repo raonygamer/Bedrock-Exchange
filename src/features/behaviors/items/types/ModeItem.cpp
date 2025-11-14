@@ -92,6 +92,7 @@ std::string ModeItem::getModeDescription(size_t mode) const {
 }
 
 void ModeItem::sendModeChangeMessage(size_t mode) const {
+#ifdef CLIENT
 	if (!Amethyst::IsOnMainClientThread())
 		return;
 	auto& client = *Amethyst::GetClientCtx().mClientInstance;
@@ -100,6 +101,7 @@ void ModeItem::sendModeChangeMessage(size_t mode) const {
 		"Switched to §b{}§r Mode",
 		getI18n().get(modeNameKey, nullptr)
 	));
+#endif
 }
 
 ModeItem::SwitchModeEvent::SwitchModeEvent(BehaviorStorage& storage, Behavior& sender, ItemStackBase& stack, size_t lastMode, size_t newMode) :

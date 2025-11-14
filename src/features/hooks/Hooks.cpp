@@ -1,6 +1,7 @@
-﻿#include "features/hooks/Hooks.hpp"
+#include "features/hooks/Hooks.hpp"
 #include "features/components/AlchemicalBagContainerComponent.hpp"
 #include "features/containers/managers/models/AlchemicalBagManagerModel.hpp"
+#include "features/containers/managers/controllers/AlchemicalBagManagerController.hpp"
 #include "features/ModGlobals.hpp"
 #include "features/emc/EMCRepository.hpp"
 #include "features/emc/EMCUtils.hpp"
@@ -24,6 +25,7 @@
 #include "mc/src/common/world/containers/models/ContainerModel.hpp"
 #include "mc/src/common/world/actor/player/Player.hpp"
 #include "mc/src/common/world/containers/ContainerValidation.hpp"
+#include "mc/src/common/world/containers/managers/controllers/ContainerManagerController.hpp"
 #include "mc/src/common/world/inventory/network/SparseContainer.hpp"
 #include "mc/src/common/world/inventory/simulation/validation/ContainerScreenValidation.hpp"
 #include "mc/src/common/world/inventory/network/ItemStackNetManagerServer.hpp"
@@ -41,6 +43,7 @@
 #include "mc/src/common/world/gamemode/GameMode.hpp"
 #include "mc/src/common/world/item/registry/CreativeItemRegistry.hpp"
 #include "mc/src/common/world/item/registry/CreativeGroupInfo.hpp"
+#include "mc/src/common/network/packet/InventoryContentPacket.hpp"
 #include "mc/src/common/Minecraft.hpp"
 #include "mc/src-client/common/client/renderer/blockActor/ChestRenderer.hpp"
 #include "mc/src-client/common/client/gui/screens/controllers/HudScreenController.hpp"
@@ -52,7 +55,7 @@
 #include "mc/src-client/common/client/particlesystem/particle/ParticleSystemEngine.hpp"
 #include "mc/src/common/world/item/VanillaItems.hpp"
 #include "mc/src-deps/core/math/Color.hpp"
-
+#pragma optimize("", off)
 using namespace ee2::emc;
 
 Amethyst::InlineHook<decltype(&Player::$constructor)> _Player_$constructor;
@@ -62,24 +65,55 @@ Amethyst::InlineHook<decltype(&Player::addAdditionalSaveData)> _Player_addAdditi
 Amethyst::InlineHook<decltype(&Recipes::init)> _Recipes_init;
 Amethyst::InlineHook<decltype(&ContainerValidatorFactory::getBackingContainer)> _ContainerValidatorFactory_getBackingContainer;
 Amethyst::InlineHook<decltype(&BlockActorFactory::createBlockEntity)> _BlockActorFactory_createBlockEntity;
-Amethyst::InlineHook<decltype(&Item::appendFormattedHovertext)> _Item_appendFormattedHovertext;
 Amethyst::InlineHook<decltype(&VanillaItems::_addItemsCategory)> _VanillaItems__addItemsCategory;
 Amethyst::InlineHook<decltype(&VanillaItems::_addEquipmentCategory)> _VanillaItems__addEquipmentCategory;
+Amethyst::InlineHook<decltype(&GameMode::destroyBlock)> _GameMode_destroyBlock;
+Amethyst::InlineHook<InteractionResult*(*)(GameMode* self, InteractionResult* result, ItemStack& item, const BlockPos pos, FacingID face, const Vec3& clickPos, const Block* block)> _GameMode_useItemOn;
+#ifdef CLIENT
+Amethyst::InlineHook<decltype(&Item::appendFormattedHovertext)> _Item_appendFormattedHovertext;
 Amethyst::InlineHook<decltype(&ContainerScreenController::_registerBindings)> _ContainerScreenController__registerBindings;
 Amethyst::InlineHook<decltype(&HudScreenController::$constructor)> _HudScreenController_$constructor;
 Amethyst::InlineHook<decltype(Amethyst::OverloadCast<bool(HudScreenController::*)(const std::string&, uint32_t, int, const std::string&, uint32_t, const std::string&, UIPropertyBag&)>(&HudScreenController::bind))> _HudScreenController_bind;
 Amethyst::InlineHook<decltype(&InGamePlayScreen::_renderLevel)> _InGamePlayScreen__renderLevel;
-Amethyst::InlineHook<decltype(&GameMode::destroyBlock)> _GameMode_destroyBlock;
-Amethyst::InlineHook<InteractionResult*(*)(GameMode* self, InteractionResult* result, ItemStack& item, const BlockPos pos, FacingID face, const Vec3& clickPos, const Block* block)> _GameMode_useItemOn;
+Amethyst::InlineHook<bool(*)(ContainerManagerController* self, ItemTransferType type, const SlotData& srcSlot, const SlotData& dstSlot, void* transferAmount, bool allowSwap, bool idk)> _ContainerManagerController__transfer;
+#endif
 
 void Player_readAdditionalSaveData(Player* self, const CompoundTag& tag, DataLoadHelper& helper) {
     _Player_readAdditionalSaveData(self, tag, helper);
+	auto* component = self->tryGetComponent<AlchemicalBagContainerComponent>();
+	if (!component)
+		return;
+
+	if (!tag.contains("AlchemicalBags", Tag::Compound))
+		return;
+
+	const CompoundTag& bagsTag = *tag.getCompound("AlchemicalBags");
+	for (int i = 0; i < ModGlobals::AlchemicalBagColors.size(); i++) {
+		std::string bagContainerTagName = std::format("AlchemicalBag[{}]", i);
+		if (!bagsTag.contains(bagContainerTagName, Tag::List))
+			continue;
+		const ListTag* containerTag = bagsTag.getList(bagContainerTagName);
+		if (!containerTag)
+			continue;
+		component->mContainers[i]->load(*containerTag, FillingContainer::PLAYER_UI_CONTAINER_UNVERSIONED, *self->getLevel()->asLevel());
+	}
 }
 
 void Player_addAdditionalSaveData(Player* self, CompoundTag& tag) {
     _Player_addAdditionalSaveData(self, tag);
-}
+	auto* component = self->tryGetComponent<AlchemicalBagContainerComponent>();
+	if (!component)
+		return;
 
+	auto& bagsTag = static_cast<CompoundTag&>(tag.put("AlchemicalBags", CompoundTag()));
+	for (int i = 0; i < ModGlobals::AlchemicalBagColors.size(); i++) {
+		std::string bagContainerTagName = std::format("AlchemicalBag[{}]", i);
+		auto tag = component->mContainers[i]->save();
+		if (!tag)
+			continue;
+		bagsTag.put(bagContainerTagName, std::move(tag));
+	}
+}
 
 void Player_$constructor(Player* self, void* a2, void* a3, void* a4, void* a5, void* a6, void* a7, void* a8, void* a9, void* a10, void* a11, void* a12, void* a13, void* a14) {
 	_Player_$constructor(self, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14);
@@ -111,31 +145,35 @@ void Player_$constructor(Player* self, void* a2, void* a3, void* a4, void* a5, v
 }
 
 Container* ContainerWeakRef_tryGetActorContainer(Actor& actor, ActorContainerType type) {
-    if (type == CustomActorContainerType::AlchemicalBag) {
+	int typeInt = static_cast<int>(type);
+    if (typeInt >= CustomActorContainerType::FirstAlchemicalBag && typeInt <= CustomActorContainerType::LastAlchemicalBag) {
+		int bagColor = typeInt - CustomActorContainerType::FirstAlchemicalBag;
         auto* component = actor.tryGetComponent<AlchemicalBagContainerComponent>();
         if (component) {
-            return component->mContainers[0].get();
+            return component->mContainers[bagColor].get();
         }
     }
     return _ContainerWeakRef_tryGetActorContainer(actor, type);
 }
 
 Container* ContainerValidatorFactory_getBackingContainer(ContainerEnumName name, const ContainerScreenContext& ctx) {
-    if (ctx.mScreenContainerType == ContainerType::CONTAINER && name == ContainerEnumName::ContainerItems)
-    {
-        if (ctx.mOwner.index() == 1) {
-            auto& actorId = std::get<1>(ctx.mOwner);
-            if (actorId == ctx.mPlayer->getUniqueID()) {
-                auto* component = ctx.mPlayer->tryGetComponent<AlchemicalBagContainerComponent>();
-                if (component) {
-                    return component->mContainers[0].get();
-                }
-            }
+	if (name == ContainerEnumName::ContainerItems) {
+		if (ctx.mOwner.index() == 1) {
+			auto& actorId = std::get<1>(ctx.mOwner);
+			if (actorId == ctx.mPlayer->getUniqueID()) {
+				if (auto* containerManager = dynamic_cast<AlchemicalBagManagerModel*>(ctx.mPlayer->getContainerManagerModel().lock().get())) {
+					auto* component = ctx.mPlayer->tryGetComponent<AlchemicalBagContainerComponent>();
+					if (component) {
+						return component->mContainers[containerManager->mBagIndex].get();
+					}
+				}
+			}
 		}
 	}
     return _ContainerValidatorFactory_getBackingContainer(name, ctx);
 }
 
+#ifdef CLIENT
 struct dot_separator : std::numpunct<char> {
 protected:
     char do_thousands_sep() const override { return '.'; }
@@ -167,18 +205,26 @@ void Item_appendFormattedHovertext(const Item* self, const ItemStackBase& stack,
         hovertext += std::format("\n§eStack EMC: §f{}§r", ss.str());
 	}
 }
+#endif
 
 void Recipes_init(Recipes* self, ResourcePackManager& rpm, ExternalRecipeStore& ers, const BaseGameVersion& bgv, const Experiments& exp) {
-    _Recipes_init(self, rpm, ers, bgv, exp);
-    Log::Info("Mapping EMC values...");
+	_Recipes_init(self, rpm, ers, bgv, exp);
+	Log::Info("Mapping EMC values...");
 	ee2::emc::EMCRepository::init(*self);
 }
 
 std::shared_ptr<BlockActor> BlockActorFactory_createBlockEntity(BlockActorType type, const BlockPos& pos, const BlockLegacy& block) {
-    if (type == CustomBlockActorType::AlchemicalChest) {
+    auto result = _BlockActorFactory_createBlockEntity(type, pos, block);
+	if (result)
+		return result;
+
+	if (type == CustomBlockActorType::AlchemicalChest) {
 		return std::make_shared<AlchemicalChestBlockActor>(pos);
     }
-    return _BlockActorFactory_createBlockEntity(type, pos, block);
+	else if (type == CustomBlockActorType::DarkMatterFurnace) {
+		return block.newBlockEntity(pos, *block.mDefaultState);
+	}
+	return nullptr;
 }
 
 void VanillaItems__addItemsCategory(CreativeItemRegistry* creativeItemRegistry, ItemRegistryRef registry, const BaseGameVersion& version, const Experiments& experiments) {
@@ -233,6 +279,7 @@ void VanillaItems__addEquipmentCategory(CreativeItemRegistry* creativeItemRegist
 	}
 }
 
+#ifdef CLIENT
 void ContainerScreenController__registerBindings(ContainerScreenController* self) {
     _ContainerScreenController__registerBindings(self);
     self->bindBoolForAnyCollection("#item_charge_visible", [self](const std::string& collection, int index) {
@@ -384,6 +431,7 @@ void InGamePlayScreen__renderLevel(InGamePlayScreen* self, ScreenContext& screen
 		}
 	}
 }
+#endif
 
 bool GameMode_destroyBlock(GameMode* self, const BlockPos& pos, FacingID face) {
 	PlayerInventory& inventory = self->mPlayer.getSupplies();
@@ -452,6 +500,38 @@ void LevelRendererPlayer_addTerrainEffect_removeBlockParticleLimit(SafetyHookCon
 	ctx.rax = 0; // Set as if no "minecraft:block_destruct" particles exist
 }
 
+#ifdef CLIENT
+class LegacyClientNetworkHandler;
+Amethyst::InlineHook<void(*)(LegacyClientNetworkHandler*, const NetworkIdentifier&, const InventoryContentPacket&)> _LegacyClientNetworkHandler_handle_InventoryContentPacket;
+void LegacyClientNetworkHandler_handle_InventoryContentPacket(LegacyClientNetworkHandler* self, const NetworkIdentifier& source, const InventoryContentPacket& packet) {
+	return _LegacyClientNetworkHandler_handle_InventoryContentPacket(self, source, packet);
+	/*auto& player = *Amethyst::GetClientCtx().mClientInstance->getLocalPlayer();
+	auto* container = dynamic_cast<AlchemicalBagManagerModel*>(player.getContainerManagerModel().lock().get());
+	if (!container)
+		return _LegacyClientNetworkHandler_handle_InventoryContentPacket(self, source, packet);
+	auto& level = *player.getLevel()->asLevel();
+	std::vector<ItemStack> allItems;
+	allItems.reserve(packet.mSlots.size());
+	ItemStack::loadItemStacksFromDescriptor(allItems, packet.mSlots, level.getBlockPalette(), level.isClientSide);
+
+	for (size_t i = 0; i < allItems.size(); i++) {
+		const auto& itemStack = allItems[i];
+		container->setSlot(i, itemStack, true);
+	}*/
+}
+
+bool ContainerManagerController__transfer(ContainerManagerController* self, ItemTransferType type, const SlotData& srcSlot, const SlotData& dstSlot, void* transferAmount, bool allowSwap, bool idk) {
+	//if (dynamic_cast<AlchemicalBagManagerController*>(self)) {
+	//	auto& srcStack = self->getItemStack(srcSlot.mCollectionName, srcSlot.mCollectionIndex);
+	//	if (AlchemicalBagItem::isAlchemicalBagItem(srcStack)) {
+	//		// Prevent transferring alchemical bags into other alchemical bags
+	//		return false;
+	//	}
+	//}
+	return _ContainerManagerController__transfer(self, type, srcSlot, dstSlot, transferAmount, allowSwap, idk);
+}
+#endif
+
 void CreateAllHooks(AmethystContext& ctx) {
     auto& hooks = *ctx.mHookManager;
     HOOK(Player, $constructor);
@@ -461,13 +541,10 @@ void CreateAllHooks(AmethystContext& ctx) {
 	HOOK(BlockActorFactory, createBlockEntity);
 	HOOK(VanillaItems, _addItemsCategory);
 	HOOK(VanillaItems, _addEquipmentCategory);
-    HOOK(ContainerScreenController, _registerBindings);
-	HOOK(InGamePlayScreen, _renderLevel);
-	
-    VHOOK(Item, appendFormattedHovertext, this);
 	VHOOK(GameMode, destroyBlock, this);
 	VHOOK(GameMode, useItemOn, this);
 
+#if CLIENT
 	// Extension to support tag "AdditionalAttackDamage" on ItemStack NBT
 	{
 		auto address = SigScanSafe("48 8B 15 ? ? ? ? 48 8B CF 66 0F 6E C0");
@@ -476,6 +553,17 @@ void CreateAllHooks(AmethystContext& ctx) {
 		_Actor_calculateAttackDamage_additionalDmgExt = safetyhook::create_mid(*address, &Actor_calculateAttackDamage_additionalDmgExt);
 	}
 
+	HOOK(InGamePlayScreen, _renderLevel);
+	HOOK(ContainerManagerController, _transfer);
+	HOOK(ContainerScreenController, _registerBindings);
+	VHOOK(Item, appendFormattedHovertext, this);
+
+	hooks.CreateHookAbsolute(
+		_LegacyClientNetworkHandler_handle_InventoryContentPacket,
+		SlideAddress(0xB0B120),
+		&LegacyClientNetworkHandler_handle_InventoryContentPacket
+	);
+
 	// Remove block particle limit when breaking blocks with Area Tools
 	{
 		auto address = SigScanSafe("49 83 FC ? 0F 87 ? ? ? ? 48 3D");
@@ -483,7 +571,7 @@ void CreateAllHooks(AmethystContext& ctx) {
 			AssertFail("Failed to find signature for LevelRendererPlayer_addTerrainEffect_removeBlockParticleLimit");
 		_LevelRendererPlayer_addTerrainEffect_removeBlockParticleLimit = safetyhook::create_mid(*address, &LevelRendererPlayer_addTerrainEffect_removeBlockParticleLimit);
 	}
-	
+
 	using BindFn = bool(HudScreenController::*)(
         const std::string&,
         uint32_t,
@@ -500,9 +588,11 @@ void CreateAllHooks(AmethystContext& ctx) {
         reinterpret_cast<uintptr_t*>(HudScreenController::$vtable_for_this)[bindFnAddr],
         &HudScreenController_bind
 	);
+#endif
 
 	// Cleanup manual hooks on mod shutdown
 	ctx.mEventBus->AddListener<BeforeModShutdownEvent>([](BeforeModShutdownEvent& event) {
 		_Actor_calculateAttackDamage_additionalDmgExt.reset();
 	});
 }
+#pragma optimize("", on)
